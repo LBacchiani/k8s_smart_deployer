@@ -90,6 +90,50 @@ class Optimizer:
                                 .format(component['metadata']['name'], container['name'], e))
         return {'resources': {'RAM': total_ram, 'cpu': total_cpu}}
 
+
+    def match_by_app(self, components, values):
+        match = []
+        for component in components:
+            if component['spec']['selector']['matchLabels']['app'] in values:
+                match.append(self.set_nickname(component['metadata']['name']))
+        return match
+
+
+    def in_operator(self, component, matches, kind):
+        affinities = []
+        if kind == 'podAffinity':
+            for match in matches:
+                affinities.append('(forall ?x in locations: (?x.{} > 0 impl ?x.{} > 0))'.format(self.set_nickname(component['metadata']['name']), match))
+        elif kind == 'podAntiAffinity':
+            if self.set_nickname(component['metadata']['name']) in matches:
+                affinities.append('(forall ?x in locations: (?x.{} <= 1))'.format(self.set_nickname(component['metadata']['name'])))
+        else:
+            raise Exception('Affinity not supported')
+        return affinities
+
+
+
+    def pod_affinity(self, component, components):
+        affinities = []
+        for x in component['spec']['template']['spec']['affinity']:
+            for selector in component['spec']['template']['spec']['affinity'][x]['requiredDuringSchedulingIgnoredDuringExecution']:
+                if selector['topologyKey'] == 'kubernetes.io/hostname':
+                    for expression in selector['labelSelector']['matchExpressions']:
+                        if expression['key'] == 'app':
+                            matches = self.match_by_app(components,  expression['values'])
+                        else:
+                            raise Exception('Key not supported')
+                        if expression['operator'] == 'In':
+                            affinities += self.in_operator(component, matches, x)
+                        else:
+                            raise Exception('Operator not supported')
+                else:
+                    raise Exception('Missing topology key: kubernetes.io/hostname')
+        return ' and '.join(affinities)
+
+
+
+
     def optimize(self, vm_properties, components):
         query_url = 'http://localhost:{}/process'.format(self.port)
         spec = {}
@@ -98,10 +142,14 @@ class Optimizer:
         if self.options: spec['options'] = self.options
         spec['specification'] = ''
         for component in components:
-            pod_name = component['metadata']['name']
+            pod_name = self.set_nickname(component['metadata']['name'])
             spec['components'][pod_name] = self.pod_requirements(component)
             if spec['specification']: spec['specification'] += ' and '
             spec['specification'] += '{} > {}'.format(pod_name, component['spec']['replicas'] - 1)
+            if 'affinity' in component['spec']['template']['spec']:
+                affinities = self.pod_affinity(component, components)
+                if affinities: spec['specification'] += ' and {}'.format(affinities)
+
         spec['specification'] += '; cost; (sum ?y in components: ?y)'
         print(json.dumps(spec, sort_keys=True, indent=4))
         result = requests_post(query_url, data=json.dumps(spec)).json()

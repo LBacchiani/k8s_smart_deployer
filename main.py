@@ -1,16 +1,20 @@
 import json
 import os
 import yaml
+import glob
 
 from optimizer import Optimizer
 
 if __name__ == '__main__':
-    vm_properties = json.load(open("annotation_examples/vm_annotation_example.json")) #TODO PASS AS PARAMETER
-    components = []
-    for filename in os.listdir("annotation_examples/test1"): #TODO PASS PATH AS PARAMETER
-        with open(os.path.join("annotation_examples/test1", filename), 'r') as f:
-            components.append(yaml.load(f, Loader=yaml.FullLoader))
+    path = 'annotation_examples/test2/'
+    extension = '*.yaml'
+    file_paths = glob.glob(f"{path}/{extension}")
+    vm_properties = json.load(open(path + 'vm_annotation.json')) #TODO PASS AS PARAMETER
     kubelet_reserved_ram = 0 #TODO PASS AS PARAMETER
     reserved_kublet_cpu = 0 #TODO PASS AS PARAMETER
+    components = []
+    for file_path in file_paths:
+        with open(file_path, 'r') as f:
+            components.append(yaml.load(f, Loader=yaml.FullLoader))
     optimizer = Optimizer(reserved_kublet_cpu, kubelet_reserved_ram, '--solver, lex-or-tools')
     optimizer.optimize(vm_properties, components)
