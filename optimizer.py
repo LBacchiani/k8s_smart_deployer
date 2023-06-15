@@ -95,18 +95,25 @@ class Optimizer:
         match = []
         for component in components:
             if component['spec']['selector']['matchLabels']['app'] in values:
-                match.append(self.set_nickname(component['metadata']['name']))
+                match.append(self.get_nickname(component['metadata']['name']))
         return match
 
 
     def in_operator(self, component, matches, kind):
         affinities = []
+        pod_nickname = self.get_nickname(component['metadata']['name'])
         if kind == 'podAffinity':
             for match in matches:
-                affinities.append('(forall ?x in locations: (?x.{} > 0 impl ?x.{} > 0))'.format(self.set_nickname(component['metadata']['name']), match))
+                affinities.append('(forall ?x in locations: (?x.{} > 0 impl ?x.{} > 0))'
+                                  .format(pod_nickname, match))
         elif kind == 'podAntiAffinity':
-            if self.set_nickname(component['metadata']['name']) in matches:
-                affinities.append('(forall ?x in locations: (?x.{} <= 1))'.format(self.set_nickname(component['metadata']['name'])))
+            if pod_nickname in matches:
+                affinities.append('(forall ?x in locations: (?x.{} <= 1))'
+                                  .format(pod_nickname))
+            else:
+                for match in matches:
+                    affinities.append('(forall ?x in locations: (?x.{} > 0 impl ?x.{} = 0))'
+                                      .format(pod_nickname, match))
         else:
             raise Exception('Affinity not supported')
         return affinities
@@ -131,7 +138,11 @@ class Optimizer:
                     raise Exception('Missing topology key: kubernetes.io/hostname')
         return ' and '.join(affinities)
 
-
+    def update_usage(self, locations, components, configuration):
+        for node in configuration:
+            for component in configuration[node]['0']:
+                locations[node]['resources']['RAM'] -= components[component]['resources']['RAM'] * configuration[node]['0'][component]
+                locations[node]['resources']['cpu'] -= components[component]['resources']['cpu'] * configuration[node]['0'][component]
 
 
     def optimize(self, vm_properties, components):
@@ -149,11 +160,12 @@ class Optimizer:
             if 'affinity' in component['spec']['template']['spec']:
                 affinities = self.pod_affinity(component, components)
                 if affinities: spec['specification'] += ' and {}'.format(affinities)
-
         spec['specification'] += '; cost; (sum ?y in components: ?y)'
         print(json.dumps(spec, sort_keys=True, indent=4))
-        result = requests_post(query_url, data=json.dumps(spec)).json()
-        print(result)
+        configuration = requests_post(query_url, data=json.dumps(spec)).json()
+        print(json.dumps(configuration, indent=4))
+        self.update_usage(spec['locations'], spec['components'], configuration['configuration']['locations'])
+        print(json.dumps(spec['locations'], indent=4))
 
 
 
