@@ -1,8 +1,8 @@
 {
   "k8s_worker_1": {
-    "resources": { "RAM": "3972", "cpu": "900" }
+    "resources": { "RAM": "4G", "cpu": "900m" }
   },
   "k8s_worker_2": {
-    "resources": { "RAM": "5000", "cpu": "1200" }
+    "resources": { "RAM": "4G", "cpu": "900m" }
   }
 }

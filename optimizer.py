@@ -1,10 +1,14 @@
 from re import match as re_match
 from bidict import bidict
+import json
+from requests import post as requests_post
+
 
 class Optimizer:
     def __init__(self, kubelet_cpu, kubelet_ram, options=None):
         self.reserved_kublet_cpu = kubelet_cpu
         self.reserved_kublet_ram = kubelet_ram
+        self.port = 8082 #TODO THIS SHOULD BE PARAMETRIC
         self.nicknames = bidict()
         self.options = [x.strip() for x in options.split(',')] if options else None
 
@@ -87,6 +91,7 @@ class Optimizer:
         return {'resources': {'RAM': total_ram, 'cpu': total_cpu}}
 
     def optimize(self, vm_properties, components):
+        query_url = 'http://localhost:{}/process'.format(self.port)
         spec = {}
         spec['locations'] = self.node_specs(vm_properties)
         spec['components'] = {}
@@ -95,7 +100,12 @@ class Optimizer:
         for component in components:
             pod_name = component['metadata']['name']
             spec['components'][pod_name] = self.pod_requirements(component)
-        print(spec)
+            if spec['specification']: spec['specification'] += ' and '
+            spec['specification'] += '{} > {}'.format(pod_name, component['spec']['replicas'] - 1)
+        spec['specification'] += '; cost; (sum ?y in components: ?y)'
+        print(json.dumps(spec, sort_keys=True, indent=4))
+        result = requests_post(query_url, data=json.dumps(spec)).json()
+        print(result)
 
 
 

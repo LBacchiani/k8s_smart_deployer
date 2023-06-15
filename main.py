@@ -12,5 +12,5 @@ if __name__ == '__main__':
             components.append(yaml.load(f, Loader=yaml.FullLoader))
     kubelet_reserved_ram = 0 #TODO PASS AS PARAMETER
     reserved_kublet_cpu = 0 #TODO PASS AS PARAMETER
-    optimizer = Optimizer(reserved_kublet_cpu, kubelet_reserved_ram)
+    optimizer = Optimizer(reserved_kublet_cpu, kubelet_reserved_ram, '--solver, lex-or-tools')
     optimizer.optimize(vm_properties, components)
