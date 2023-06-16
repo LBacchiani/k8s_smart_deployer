@@ -17,10 +17,8 @@ class Optimizer:
     def __cpu_convertion__(self, input):
         '''k8s allows for fractional CPUs, in two units: 100m (millicpu/millicores) or 0.1.'''
         try:
-            if input.endswith('m'):
-                return int(input[:-1])
-            else:
-                return int(float(input) * 1000)
+            if input.endswith('m'): return int(input[:-1])
+            else: return int(float(input) * 1000)
         except ValueError:
             raise Exception('Argument not a CPU measurement: \'{}\''.format(input))
 
@@ -50,7 +48,7 @@ class Optimizer:
     def node_specs(self, vm_properties):
         nodes = {}
         for x in vm_properties:
-            cpu = self.__cpu_convertion__(vm_properties[x]['resources']['cpu']) -self.reserved_kublet_cpu
+            cpu = self.__cpu_convertion__(vm_properties[x]['resources']['cpu']) - self.reserved_kublet_cpu
             ram = self.__ram_convertion__(vm_properties[x]['resources']['RAM']) - self.reserved_kublet_ram
             nodes[x] = {'num': 1, 'resources': {'RAM': ram, 'cpu': cpu}} #TODO add "cost"
         return nodes
@@ -60,22 +58,18 @@ class Optimizer:
 
     def set_nickname(self, name):
         '''Zephyrus2 gives dash symbols in names meaning so a workaround like this is needed.'''
-        if '-' not in name:
-            return name
+        if '-' not in name: return name
         else:
             try:
                 nickname = name.replace('-', '_')
                 self.nicknames[nickname] = name
-            except bidict.ValueDuplicationError:
-                raise Exception('Both keys and values must be unique in bidict')
+            except bidict.ValueDuplicationError: raise Exception('Both keys and values must be unique in bidict')
             return nickname
 
 
     def get_nickname(self, name):
-        if '_' not in name or name not in self.nicknames:
-            return name
-        else:
-            return self.nicknames[name]
+        if '_' not in name or name not in self.nicknames: return name
+        else: return self.nicknames[name]
 
     def pod_requirements(self, component):
         '''Sums up the resource requirements of containers in a pod.'''
@@ -118,8 +112,6 @@ class Optimizer:
             raise Exception('Affinity not supported')
         return affinities
 
-
-
     def pod_affinity(self, component, components):
         affinities = []
         for x in component['spec']['template']['spec']['affinity']:
@@ -144,9 +136,7 @@ class Optimizer:
                 locations[node]['resources']['RAM'] -= components[component]['resources']['RAM'] * configuration[node]['0'][component]
                 locations[node]['resources']['cpu'] -= components[component]['resources']['cpu'] * configuration[node]['0'][component]
 
-
-    def optimize(self, vm_properties, components):
-        query_url = 'http://localhost:{}/process'.format(self.port)
+    def build_specification(self, vm_properties, components):
         spec = {}
         spec['locations'] = self.node_specs(vm_properties)
         spec['components'] = {}
@@ -161,11 +151,19 @@ class Optimizer:
                 affinities = self.pod_affinity(component, components)
                 if affinities: spec['specification'] += ' and {}'.format(affinities)
         spec['specification'] += '; cost; (sum ?y in components: ?y)'
+        return spec
+
+    def optimize(self, vm_properties, components):
+        query_url = 'http://localhost:{}/process'.format(self.port)
+        spec = self.build_specification(vm_properties, components)
         print(json.dumps(spec, sort_keys=True, indent=4))
         configuration = requests_post(query_url, data=json.dumps(spec)).json()
-        print(json.dumps(configuration, indent=4))
-        self.update_usage(spec['locations'], spec['components'], configuration['configuration']['locations'])
-        print(json.dumps(spec['locations'], indent=4))
+        if 'error' not in configuration:
+            print(json.dumps(configuration, indent=4))
+            self.update_usage(spec['locations'], spec['components'], configuration['configuration']['locations'])
+            print(json.dumps(spec['locations'], indent=4))
+        else:
+            print('Configuration not found')
 
 
 

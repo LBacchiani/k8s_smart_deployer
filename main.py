@@ -6,7 +6,7 @@ import glob
 from optimizer import Optimizer
 
 if __name__ == '__main__':
-    path = 'annotation_examples/test2/'
+    path = 'annotation_examples/test1/'
     extension = '*.yaml'
     file_paths = glob.glob(f"{path}/{extension}")
     vm_properties = json.load(open(path + 'vm_annotation.json')) #TODO PASS AS PARAMETER
