@@ -183,7 +183,7 @@ class Optimizer:
         #query_url = 'http://localhost:{}/process'.format(self.port)
         spec = self.build_specification(vm_properties, components)
         print(json.dumps(spec, sort_keys=True, indent=4))
-        configuration, err = self.run_optimizer(spec)
+        configuration, err = self.run_optimizer(json.dumps(spec))
         print(configuration)
         print(err)
         #configuration = requests_post(query_url, data=json.dumps(spec)).json()
