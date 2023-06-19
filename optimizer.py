@@ -164,9 +164,9 @@ class Optimizer:
     def run_optimizer(self, spec):
         files = []
         timeout = str(TIMEOUT)
-        data = json.loads(self.spec)
+        data = json.loads(spec)
         file_id, name = tempfile.mkstemp(suffix='.json', text=True)
-        os.write(file_id, self.spec)
+        os.write(file_id, spec)
         os.close(file_id)
         files.append(name)
         if "options" not in data:
