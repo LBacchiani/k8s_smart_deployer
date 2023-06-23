@@ -156,14 +156,14 @@ class Optimizer:
     def optimize(self, vm_properties, components):
         query_url = 'http://localhost:{}/process'.format(self.port)
         spec = self.build_specification(vm_properties, components)
-        print(json.dumps(spec, sort_keys=True, indent=4))
+        #print(json.dumps(spec, sort_keys=True, indent=4))
         configuration = requests_post(query_url, data=json.dumps(spec)).json()
         if 'error' not in configuration:
             print(json.dumps(configuration, indent=4))
             self.update_usage(spec['locations'], spec['components'], configuration['configuration']['locations'])
-            print(json.dumps(spec['locations'], indent=4))
-        else:
-            print('Configuration not found')
+            resources_left = json.dumps(spec['locations'], indent=4) #returns the remaining resources
+        else: print('Configuration not found')
+        return configuration, resources_left
 
 
 
