@@ -152,7 +152,7 @@ class Optimizer:
         spec['specification'] += '; cost; (sum ?y in components: ?y)'
         return spec
 
-
+    #TODO SEPARATE OPTIMIZATION FROM RESOURCE LEFT COMPUTATION
     def optimize(self, vm_properties, components):
         query_url = 'http://localhost:{}/process'.format(self.port)
         spec = self.build_specification(vm_properties, components)
@@ -161,9 +161,12 @@ class Optimizer:
         if 'error' not in configuration:
             print(json.dumps(configuration, indent=4))
             self.update_usage(spec['locations'], spec['components'], configuration['configuration']['locations'])
-            resources_left = json.dumps(spec['locations'], indent=4) #returns the remaining resources
+            for node in configuration['configuration']['locations']:
+                configuration['configuration']['locations'][node]["0"] = \
+                    {self.get_nickname(key): value
+                     for key, value in configuration['configuration']['locations'][node]["0"].items()}
         else: print('Configuration not found')
-        return configuration, resources_left
+        return configuration, spec['locations']
 
 
 

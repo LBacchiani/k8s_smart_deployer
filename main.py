@@ -21,9 +21,11 @@ if __name__ == '__main__':
             components.append(yaml.load(f, Loader=yaml.FullLoader))
     optimizer = Optimizer(reserved_kublet_cpu, kubelet_reserved_ram, port, '--solver, lex-or-tools')
     configuration, resources = optimizer.optimize(vm_properties, components)
-    #TODO write resources in a json file inside the deployment folder
 
     for node in configuration["configuration"]['locations']:
         for component in configuration["configuration"]['locations'][node]['0']:
             yaml_file = list(filter(lambda x: x['metadata']['name'] == component, components))[0]
             generate_yaml(node, component, yaml_file, configuration["configuration"]['locations'][node]['0'][component])
+    file_name = "deployments/vm_annotations.json"
+
+    with open(file_name, "w") as file: json.dump(resources, file, indent=4)
