@@ -7,21 +7,35 @@ from code_generation import *
 from optimizer import Optimizer
 
 if __name__ == '__main__':
+
+    ######ARGS######
     args = sys.argv[1:]
     kubelet_reserved_ram = int(args[0])
     reserved_kublet_cpu = int(args[1])
-    path = args[2]  # 'annotation_examples/test1/'
-    extension = '*.yaml'
-    file_paths = glob.glob(f"{path}/{extension}")
-    vm_properties = json.load(open(path + args[3]))
-    port = args[4]
-    components = []
-    for file_path in file_paths:
-        with open(file_path, 'r') as f:
-            components.append(yaml.load(f, Loader=yaml.FullLoader))
-    optimizer = Optimizer(reserved_kublet_cpu, kubelet_reserved_ram, port, '--solver, lex-or-tools')
-    configuration, resources = optimizer.optimize(vm_properties, components)
+    path = args[2]
+    port = args[3]
 
+    ######EXTRACTION#######
+    files = os.listdir(path)
+    components = []
+    vm_properties = {}
+    for file_name in files:
+        file_path = os.path.join(path, file_name)
+        with open(file_path, 'r') as f:
+            if file_path.endswith('.yaml') or file_path.endswith('.yml'):
+                components.append(yaml.load(f, Loader=yaml.FullLoader))
+            elif file_path.endswith('.json'):
+                vm_properties = json.load(f)
+    #######
+
+    ####OPTIMAL DEPLOYMENT PROBLEM SOLUTION######
+    optimizer = Optimizer(reserved_kublet_cpu, kubelet_reserved_ram, port, '--solver, lex-or-tools')
+    configuration = optimizer.optimize(vm_properties, components)
+    resources = optimizer.update_usage(configuration['configuration']['locations'])
+    configuration = optimizer.normalize_names(configuration)
+    #####################
+
+    #######CODE GENERATION########
     for node in configuration["configuration"]['locations']:
         for component in configuration["configuration"]['locations'][node]['0']:
             yaml_file = list(filter(lambda x: x['metadata']['name'] == component, components))[0]
