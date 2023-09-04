@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cache
+spec:
+  selector:
+    matchLabels:
+      environment: cache  # Change 'tier' to 'environment'
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        environment: cache  # Change 'tier' to 'environment'
+    spec:
+      schedulerName: boreas-scheduler
+      containers:
+        - name: cache-container
+          image: k8s.gcr.io/pause:2.0
+          resources:
+            requests:
+              cpu: "200m"
+              memory: "400M"

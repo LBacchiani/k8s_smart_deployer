@@ -1,0 +1,14 @@
+{
+  "k8s-worker-1": {
+    "resources": { "RAM": "4G", "cpu": "900m" }
+  },
+  "k8s-worker-2": {
+    "resources": { "RAM": "4G", "cpu": "900m" }
+  },
+  "k8s-worker-3": {
+    "resources": { "RAM": "4G", "cpu": "900m" }
+  },
+  "k8s-worker-4": {
+    "resources": { "RAM": "4G", "cpu": "900m" }
+  }
+}
