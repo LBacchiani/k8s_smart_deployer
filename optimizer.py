@@ -42,6 +42,7 @@ def pod_affinity(component, components):
                 matches = matches_lookup(components, expression['values'], expression['key'])
                 if expression['operator'] == 'In':
                     affinities += in_operator(component, matches, x)
+                #TODO add other operators
                 else:
                     raise Exception('Operator not supported')
     return ' and '.join(affinities)
