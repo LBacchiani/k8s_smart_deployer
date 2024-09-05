@@ -9,9 +9,11 @@ def generate_yaml(node_name, config_file):
     replicas = config_file['spec']['replicas']
     for r in range(replicas):
         file_name = "deployments/" + node_name + "_" + service_name + "_" + str(r) + ".yaml"
+        name = 'sys-' + config_file['metadata']['name'] + '-'
+        generate_name = {'generateName': name}
         files_dict[file_name] = {'apiVersion': 'v1',
                                  'kind': 'Pod',
-                                 'metadata': config_file['metadata'],
+                                 'metadata': generate_name,
                                  'spec': {**config_file['spec']['template']['spec'], 'nodeName': node_name}}
         with open(file_name, "w") as file:
             yaml.dump(files_dict[file_name], file)
