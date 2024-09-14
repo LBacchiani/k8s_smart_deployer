@@ -2,13 +2,13 @@ import yaml
 import os
 
 
-def generate_yaml(node_name, config_file):
-    os.makedirs("deployments", exist_ok=True)
+def generate_yaml(node_name, config_file, folder_name):
+    os.makedirs(f"deployments/{folder_name}", exist_ok=True)
     files_dict = {}
     service_name = config_file['metadata']['name']
     replicas = config_file['spec']['replicas']
     for r in range(replicas):
-        file_name = "deployments/" + node_name + "_" + service_name + "_" + str(r) + ".yaml"
+        file_name = "deployments/" + folder_name + "/" + node_name + "_" + service_name + "_" + str(r) + ".yaml"
         name = 'sys-' + config_file['metadata']['name'] + '-'
         generate_name = {'generateName': name}
         files_dict[file_name] = {'apiVersion': 'v1',
