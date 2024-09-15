@@ -30,6 +30,7 @@ if __name__ == '__main__':
         for component in configuration["configuration"]['locations'][node]['0']:
             yaml_file = list(filter(lambda x: x['metadata']['name'] == component, components))[0]
             generate_yaml(node, yaml_file, folder_name)
+    insert_deploy_script(folder_name)
     file_name = f"deployments/{folder_name}/vm_annotations.yaml"
     with open(file_name, "w") as file:
         yaml.dump(resources, file)
