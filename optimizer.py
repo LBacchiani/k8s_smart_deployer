@@ -2,6 +2,7 @@ from re import match as re_match
 from bidict import bidict
 import json
 from requests import post as requests_post
+import toposort
 
 class Optimizer:
     def __init__(self, kubelet_cpu, kubelet_ram, port, options=None):
@@ -46,13 +47,11 @@ class Optimizer:
 
     def node_specs(self, vm_properties):
         nodes = {}
-        for x in vm_properties:
+        for x in vm_properties.keys():
             cpu = self.__cpu_convertion__(vm_properties[x]['resources']['cpu']) - self.reserved_kublet_cpu
             ram = self.__ram_convertion__(vm_properties[x]['resources']['RAM']) - self.reserved_kublet_ram
             nodes[x] = {'num': 1, 'resources': {'RAM': ram, 'cpu': cpu}} #TODO add "cost"
         return nodes
-
-
     ###############
 
     def set_nickname(self, name):
@@ -65,7 +64,6 @@ class Optimizer:
             except bidict.ValueDuplicationError: raise Exception('Both keys and values must be unique in bidict')
             return nickname
 
-
     def get_nickname(self, name):
         if '_' not in name or name not in self.nicknames: return name
         else: return self.nicknames[name]
@@ -74,6 +72,7 @@ class Optimizer:
         '''Sums up the resource requirements of containers in a pod.'''
         total_cpu = 0
         total_ram = 0
+        to_return = {'resources': {}, 'provides': [{}], 'requires': {}}
         for container in component['spec']['template']['spec']['containers']:
             try:
                 total_cpu += self.__cpu_convertion__(container['resources']['requests']['cpu'])
@@ -81,8 +80,14 @@ class Optimizer:
             except KeyError as e:
                 raise Exception('Resource request for {}\'s {} container lacks {} key.'
                                 .format(component['metadata']['name'], container['name'], e))
-        return {'resources': {'RAM': total_ram, 'cpu': total_cpu}}
-
+        to_return['resources'] = {'RAM': total_ram, 'cpu': total_cpu}
+        if 'ports' in component:
+            required = {}
+            for port in component['ports']['required']['strong']:
+                required[port['name']] = port['value']
+            to_return['requires'] = required
+        to_return['provides'] = [{'ports': [component['metadata']['name']], 'num': -1}]
+        return to_return
 
     def match_by_app(self, components, values):
         match = []
@@ -90,7 +95,6 @@ class Optimizer:
             if component['spec']['selector']['matchLabels']['app'] in values:
                 match.append(self.get_nickname(component['metadata']['name']))
         return match
-
 
     def in_operator(self, component, matches, kind):
         affinities = []
@@ -131,6 +135,7 @@ class Optimizer:
 
     def update_usage(self, locations, components, configuration):
         for node in configuration:
+            del(locations[node]['num'])
             for component in configuration[node]['0']:
                 locations[node]['resources']['RAM'] -= components[component]['resources']['RAM'] * configuration[node]['0'][component]
                 locations[node]['resources']['cpu'] -= components[component]['resources']['cpu'] * configuration[node]['0'][component]
@@ -152,22 +157,35 @@ class Optimizer:
         spec['specification'] += '; cost; (sum ?y in components: ?y)'
         return spec
 
+    def get_topological_sort(self, objs, bindings):
+        graph = {}
+        for i in objs:
+            graph[i] = set([])
+        print(graph)
+        for i in bindings:
+            graph[( i["req_location"],i["req_location_num"],i["req_comp"],i["req_comp_num"])].add(
+                ( i["prov_location"],i["prov_location_num"],i["prov_comp"],i["prov_comp_num"]))
+        return list(toposort.toposort(graph))
+
     #TODO SEPARATE OPTIMIZATION FROM RESOURCE LEFT COMPUTATION
     def optimize(self, vm_properties, components):
         query_url = 'http://localhost:{}/process'.format(self.port)
         spec = self.build_specification(vm_properties, components)
-        #print(json.dumps(spec, sort_keys=True, indent=4))
+        objs = list(spec['components'].keys()) + list(spec['locations'].keys())
         configuration = requests_post(query_url, data=json.dumps(spec)).json()
         if 'error' not in configuration:
-            print(json.dumps(configuration, indent=4))
             self.update_usage(spec['locations'], spec['components'], configuration['configuration']['locations'])
             for node in configuration['configuration']['locations']:
                 configuration['configuration']['locations'][node]["0"] = \
                     {self.get_nickname(key): value
                      for key, value in configuration['configuration']['locations'][node]["0"].items()}
         else: print('Configuration not found')
-        return configuration, spec['locations']
+        print(configuration)
+        ordered = self.get_topological_sort(objs, configuration['optimized_bindings'])
+        # print(ordered)
+        print(configuration['optimized_bindings'])
 
+        return configuration, spec['locations']
 
 
 
