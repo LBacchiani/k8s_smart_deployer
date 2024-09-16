@@ -51,7 +51,7 @@ def deploy_manifests(manifest_files, namespace="default"):
         print("No manifest files found to deploy.")
         return []
 
-    config.load_kube_config()  # Load kubeconfig to interact with the cluster
+    config.load_kube_config()
     api_client = client.ApiClient()
 
     deployed_pods = []
@@ -121,6 +121,7 @@ if __name__ == "__main__":
         try:
             with open(args.deployed_pods_file, "r") as f:
                 deployed_pods = [line.strip() for line in f.readlines()]
+                os.remove(args.deployed_pods_file)
         except FileNotFoundError:
             print(f"No file {args.deployed_pods_file} found. Make sure you deployed pods first.")
             sys.exit(1)
