@@ -14,6 +14,7 @@ if __name__ == '__main__':
     extension = '*.yaml'
     file_paths = glob.glob(f"{path}/{extension}")
     vm_properties = json.load(open(path + args[3]))
+
     port = args[4]
     components = []
     for file_path in file_paths:

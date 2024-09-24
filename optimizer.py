@@ -161,9 +161,8 @@ class Optimizer:
         graph = {}
         for i in objs:
             graph[i] = set([])
-        print(graph)
         for i in bindings:
-            graph[( i["req_location"],i["req_location_num"],i["req_comp"],i["req_comp_num"])].add(
+            graph.setdefault((i["req_location"], i["req_location_num"], i["req_comp"], i["req_comp_num"]), set()).add(
                 ( i["prov_location"],i["prov_location_num"],i["prov_comp"],i["prov_comp_num"]))
         return list(toposort.toposort(graph))
 
@@ -180,10 +179,7 @@ class Optimizer:
                     {self.get_nickname(key): value
                      for key, value in configuration['configuration']['locations'][node]["0"].items()}
         else: print('Configuration not found')
-        print(configuration)
         ordered = self.get_topological_sort(objs, configuration['optimized_bindings'])
-        # print(ordered)
-        print(configuration['optimized_bindings'])
 
         return configuration, spec['locations']
 
