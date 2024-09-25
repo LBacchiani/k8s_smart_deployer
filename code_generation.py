@@ -1,6 +1,8 @@
 import yaml
 import os
 import shutil
+from jinja2 import Template
+from jinja2 import Environment, FileSystemLoader
 
 def generate_yaml(node_name, config_file, folder_name):
     os.makedirs(f"deployments/{folder_name}/manifests", exist_ok=True)
@@ -21,3 +23,10 @@ def generate_yaml(node_name, config_file, folder_name):
 def insert_deploy_script(folder_name):
     os.makedirs(f"deployments/{folder_name}", exist_ok=True)
     shutil.copyfile('./script_template/deployer.py', f'deployments/{folder_name}/deployer.py')
+
+def generate_from_template():
+    env = Environment(loader=FileSystemLoader('./script_template'))
+    template = env.get_template('deployer.jinja2')
+    output = template.render(func_name="my_function", return_value="Hello, world!")
+    with open('deployer.py', 'w') as f:
+        f.write(output)
