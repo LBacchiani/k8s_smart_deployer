@@ -11,7 +11,7 @@ where ```<PORT>``` is a user-defined port
 
 To run the tool open a terminal in the root folder and execute 
 ```
-python main.py ARG1 ARG2 ARG3 ARG4 ARG5
+python main.py ARG1 ARG2 ARG3 ARG4
 ```
 where
 
@@ -19,6 +19,5 @@ where
 ARG1 is the kubelet reserved ram
 ARG2 is the kubelet reserved CPU
 ARG3 is the path to the components specification
-ARG4 is the VMs specification file name (it needs to be in the same path specified in ARG3)
-ARG5 is the value of the <PORT> specified after launching the zephyrus2 container
+ARG4 is the value of the <PORT> specified after launching the zephyrus2 container
 ```

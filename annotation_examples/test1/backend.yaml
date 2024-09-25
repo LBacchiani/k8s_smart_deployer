@@ -19,5 +19,5 @@ spec:
           requests:
             cpu: "300m"
             memory: "500M"
-
-
+require:
+  - name: proxy
