@@ -25,7 +25,8 @@ if __name__ == '__main__':
             with open(file_path, 'r') as f:
                 components.append(yaml.load(f, Loader=yaml.FullLoader))
     optimizer = Optimizer(reserved_kublet_cpu, kubelet_reserved_ram, port, '--solver, lex-or-tools')
-    configuration, resources = optimizer.optimize(vm_properties, components)
+    configuration, resources, order = optimizer.optimize(vm_properties, components)
+    print(order)
     for node in configuration["configuration"]['locations']:
         for component in configuration["configuration"]['locations'][node]['0']:
             yaml_file = list(filter(lambda x: x['metadata']['name'] == component, components))[0]

@@ -180,8 +180,7 @@ class Optimizer:
                      for key, value in configuration['configuration']['locations'][node]["0"].items()}
         else: print('Configuration not found')
         ordered = self.get_topological_sort(objs, configuration['optimized_bindings'])
-
-        return configuration, spec['locations']
+        return configuration, spec['locations'], ordered
 
 
 
