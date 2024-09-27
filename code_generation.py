@@ -1,8 +1,9 @@
 import yaml
 import os
-import shutil
-from jinja2 import Template
-from jinja2 import Environment, FileSystemLoader
+
+class NoAliasDumper(yaml.SafeDumper):
+    def ignore_aliases(self, data):
+        return True
 
 def generate_yaml(node_name, config_file, folder_name):
     os.makedirs(f"deployments/{folder_name}/manifests", exist_ok=True)
@@ -20,13 +21,56 @@ def generate_yaml(node_name, config_file, folder_name):
         with open(file_name, "w") as file:
             yaml.dump(files_dict[file_name], file)
 
-def insert_deploy_script(folder_name):
-    os.makedirs(f"deployments/{folder_name}", exist_ok=True)
-    shutil.copyfile('./script_template/deployer.py', f'deployments/{folder_name}/deployer.py')
+def create_pod_definition(component, containers, node_name):
+    return {
+        'apiVersion': 'v1',
+        'kind': 'Pod',
+        'metadata': {
+            'name': component,
+            'labels': {'app': component}
+        },
+        'spec': {
+            'nodeName': node_name,
+            'containers': containers
+        }
+    }
 
-def generate_from_template():
-    env = Environment(loader=FileSystemLoader('./script_template'))
-    template = env.get_template('deployer.jinja2')
-    output = template.render(func_name="my_function", return_value="Hello, world!")
-    with open('deployer.py', 'w') as f:
-        f.write(output)
+def generate_pulumi_yaml_definition(resources, order, components, folder_name):
+    pulumi_pod_definitions = []
+    previous_pods = []
+
+    for group in order:
+        current_pods = []
+        for (node, _, service_name, service_index) in group:
+            component = f"{service_name}-{service_index}"
+            yaml_file = list(filter(lambda x: x['metadata']['name'] == service_name, components))[0]
+            containers = yaml_file['spec']['template']['spec']['containers']
+
+            pod_definition = {
+                'name': f"{component}-pod",
+                'type': 'kubernetes:core/v1:Pod',
+                'properties': create_pod_definition(component, containers, node),
+                'options': {}
+            }
+
+            if previous_pods:
+                pod_definition['options']['dependsOn'] = previous_pods
+
+            pulumi_pod_definitions.append(pod_definition)
+            current_pods.append("${" + f"{component}-pod" + "}")
+
+        previous_pods = current_pods
+
+    file_name = f"deployments/{folder_name}/pulumi_deployment.yaml"
+    pulumi_yaml = {
+        'name': 'my-k8s-app',
+        'runtime': 'yaml',
+        'resources': {pod['name']: pod for pod in pulumi_pod_definitions}
+    }
+
+    with open(file_name, "w") as file:
+        yaml.dump(pulumi_yaml, file, default_flow_style=False, Dumper=NoAliasDumper)
+
+    file_name = f"deployments/{folder_name}/vm_annotations.yaml"
+    with open(file_name, "w") as file:
+        yaml.dump(resources, file, default_flow_style=False)
