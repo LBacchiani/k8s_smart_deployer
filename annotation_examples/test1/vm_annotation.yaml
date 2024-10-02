@@ -11,3 +11,4 @@ k3d-k3s-default-agent-0:
 services_present:
   name:
     - proxy
+    - abs

@@ -7,7 +7,8 @@ class NoAliasDumper(yaml.SafeDumper):
         return True
 
 
-def prepare_deployment_data(order, components):
+def prepare_deployment_data(order, components, excluded_services):
+    excluded_service_names = set(excluded_services.get('services_present', {}).get('name', []))
     component_mapping = {comp['metadata']['name']: comp for comp in components}
     deployment_data = []
     deployed_services = []
@@ -27,15 +28,16 @@ def prepare_deployment_data(order, components):
         }
 
     if not order:
-        # If order is empty, create service data for all components without dependencies
         for component in components:
-            service_data = create_service_data(
-                node_name=component['metadata']['name'],  # Placeholder node name
-                service_name=component['metadata']['name'],
-                service_index=0,  # Default index
-                component=component
-            )
-            deployment_data.append([service_data])  # Wrap in list to maintain structure
+            service_name = component['metadata']['name']
+            if service_name not in excluded_service_names:
+                service_data = create_service_data(
+                    node_name=service_name,
+                    service_name=service_name,
+                    service_index=0,
+                    component=component
+                )
+                deployment_data.append([service_data])
         return deployment_data
 
     for service_info_set in order:
@@ -45,15 +47,16 @@ def prepare_deployment_data(order, components):
             service_name = service_info[2]
             service_index = service_info[3]
 
-            component = component_mapping.get(service_name)
-            if component:
-                service_data = create_service_data(
-                    node_name=node_name,
-                    service_name=service_name,
-                    service_index=service_index,
-                    component=component
-                )
-                service_group.append(service_data)
+            if service_name not in excluded_service_names:
+                component = component_mapping.get(service_name)
+                if component:
+                    service_data = create_service_data(
+                        node_name=node_name,
+                        service_name=service_name,
+                        service_index=service_index,
+                        component=component
+                    )
+                    service_group.append(service_data)
 
         deployment_data.append(service_group)
         deployed_services.extend(service_group)
@@ -61,14 +64,16 @@ def prepare_deployment_data(order, components):
     return deployment_data
 
 
+def generate_python_script(resources, order, components, folder_name, excluded_services=None):
+    if excluded_services is None:
+        excluded_services = {}
 
-def generate_python_script(resources, order, components, folder_name):
     os.makedirs(f"deployments/{folder_name}", exist_ok=True)
     file_loader = FileSystemLoader('script_template')
     env = Environment(loader=file_loader)
     template = env.get_template('orchestration_program.jinja2')
 
-    deployment_data = prepare_deployment_data(order, components)
+    deployment_data = prepare_deployment_data(order, components, excluded_services)
     rendered_script = template.render(deployment_data=deployment_data)
 
     with open(f"deployments/{folder_name}/pulumi_deployment.py", 'w') as f:
@@ -76,24 +81,6 @@ def generate_python_script(resources, order, components, folder_name):
 
     with open(f"deployments/{folder_name}/vm_annotations.yaml", "w") as file:
         yaml.dump(resources, file, default_flow_style=False)
-
-
-def generate_yaml(node_name, config_file, folder_name):
-    os.makedirs(f"deployments/{folder_name}/manifests", exist_ok=True)
-    files_dict = {}
-    service_name = config_file['metadata']['name']
-    replicas = config_file['spec']['replicas']
-    for r in range(replicas):
-        file_name = "deployments/" + folder_name + "/manifests/" + node_name + "_" + service_name + "_" + str(r) + ".yaml"
-        name = 'sys-' + config_file['metadata']['name'] + '-'
-        generate_name = {'generateName': name}
-        files_dict[file_name] = {'apiVersion': 'v1',
-                                 'kind': 'Pod',
-                                 'metadata': generate_name,
-                                 'spec': {**config_file['spec']['template']['spec'], 'nodeName': node_name}}
-        with open(file_name, "w") as file:
-            yaml.dump(files_dict[file_name], file)
-
 
 def create_pod_definition(component, containers, node_name):
     return {
@@ -109,49 +96,57 @@ def create_pod_definition(component, containers, node_name):
         }
     }
 
+def add_pod_definitions(components, excluded_services, order=None,):
+    if excluded_services is None:
+        excluded_services = []
 
-def add_pod_definitions(components, order=None):
+    excluded_service_names = set(excluded_services.get('services_present', {}).get('name', []))
     pod_definitions = []
     previous_pods = []
 
     if not order:
         for comp in components:
             service_name = comp['metadata']['name']
-            containers = comp['spec']['template']['spec']['containers']
-            pod_definitions.append({
-                'name': f"{service_name}-pod",
-                'type': 'kubernetes:core/v1:Pod',
-                'properties': create_pod_definition(service_name, containers, "default-node"),
-                'options': {}
-            })
+            if service_name not in excluded_service_names:
+                containers = comp['spec']['template']['spec']['containers']
+                pod_definitions.append({
+                    'name': f"{service_name}-pod",
+                    'type': 'kubernetes:core/v1:Pod',
+                    'properties': create_pod_definition(service_name, containers, "default-node"),
+                    'options': {}
+                })
     else:
         for group in order:
             current_pods = []
             for node, _, service_name, service_index in group:
-                component = f"{service_name}-{service_index}"
-                containers = next(comp['spec']['template']['spec']['containers']
-                                  for comp in components if comp['metadata']['name'] == service_name)
+                if service_name not in excluded_service_names:
+                    component = f"{service_name}-{service_index}"
+                    containers = next(comp['spec']['template']['spec']['containers']
+                                      for comp in components if comp['metadata']['name'] == service_name)
 
-                pod_def = {
-                    'name': f"{component}-pod",
-                    'type': 'kubernetes:core/v1:Pod',
-                    'properties': create_pod_definition(component, containers, node),
-                    'options': {'dependsOn': previous_pods} if previous_pods else {}
-                }
-                pod_definitions.append(pod_def)
-                current_pods.append(f"${{{component}-pod}}")
+                    pod_def = {
+                        'name': f"{component}-pod",
+                        'type': 'kubernetes:core/v1:Pod',
+                        'properties': create_pod_definition(component, containers, node),
+                        'options': {'dependsOn': previous_pods} if previous_pods else {}
+                    }
+                    pod_definitions.append(pod_def)
+                    current_pods.append(f"${{{component}-pod}}")
 
             previous_pods = current_pods
 
     return pod_definitions
 
-def generate_pulumi_yaml_definition(resources, order, components, folder_name):
+
+def generate_pulumi_yaml_definition(resources, order, components, folder_name, excluded_services=None):
+    if excluded_services is None:
+        excluded_services = []
     os.makedirs(f"deployments/{folder_name}", exist_ok=True)
 
     pulumi_yaml = {
         'name': 'my-k8s-app',
         'runtime': 'yaml',
-        'resources': {pod['name']: pod for pod in add_pod_definitions(components, order)}
+        'resources': {pod['name']: pod for pod in add_pod_definitions(components, excluded_services, order)}
     }
 
     with open(f"deployments/{folder_name}/pulumi_deployment.yaml", "w") as file:
