@@ -1,0 +1,89 @@
+import pulumi
+import pulumi_kubernetes as k8s
+import os
+from pulumi import automation as auto
+
+def pulumi_program():
+    {% for service_group in deployment_data %}
+        {% for service in service_group %}
+    pod_{{ service['service_name'] }}_{{ service['service_index'] }} = k8s.core.v1.Pod("pod-{{ service['service_name'] }}-{{ service['service_index'] }}",
+        metadata={
+            "name": f"pod-{{ service['service_name'] }}-{{ service['service_index'] }}",
+        },
+        spec={
+            "containers": [
+                {
+                    "name": "{{ service['service_name'] }}-container",
+                    "image": "{{ service['image'] }}",
+                    "resources": {
+                        "requests": {
+                            "cpu": "{{ service['cpu'] }}",
+                            "memory": "{{ service['memory'] }}"
+                        }
+                    }
+                }
+            ],
+            "nodeName": "{{ service['node_name'] }}"
+        }
+        {% if service['depends_on'] %}
+        ,opts=pulumi.ResourceOptions(depends_on=[
+            {% for dep in service['depends_on'] %}
+                pod_{{ dep['service_name'] }}_{{ dep['service_index'] }},
+            {% endfor %}
+        ])
+        {% endif %}
+    )
+        {% endfor %}
+    {% endfor %}
+
+    # Export pod names
+    {% for service_group in deployment_data %}
+        {% for service in service_group %}
+    pulumi.export("pod_{{ service['service_name'] }}_{{ service['service_index'] }}_name", pod_{{ service['service_name'] }}_{{ service['service_index'] }}.metadata["name"])
+        {% endfor %}
+    {% endfor %}
+
+def deploy_pods_on_specific_node():
+    stack = auto.create_or_select_stack(
+        stack_name="dev-1",
+        project_name="k8s-pods-on-specific-node",
+        program=pulumi_program
+    )
+
+    print("Successfully initialized stack")
+
+    kubeconfig_path = os.getenv('KUBECONFIG', '~/.kube/config')
+    print(f"Using kubeconfig: {kubeconfig_path}")
+
+    print("Refreshing stack...")
+    stack.refresh(on_output=print)
+
+    print("Previewing changes...")
+    preview = stack.preview(on_output=print)
+
+    print("Deploying changes...")
+    up_res = stack.up(on_output=print)
+
+    {% for service_group in deployment_data %}
+        {% for service in service_group %}
+    print(f"Pod {{ service['service_name'] }}-{{ service['service_index'] }} Name: {up_res.outputs['pod_{{ service['service_name'] }}_{{ service['service_index'] }}_name'].value}")
+        {% endfor %}
+    {% endfor %}
+
+def destroy_pods():
+    stack = auto.create_or_select_stack(
+        stack_name="dev-1",
+        project_name="k8s-pods-on-specific-node",
+        program=lambda: None
+    )
+
+    print("Destroying resources...")
+    stack.destroy(on_output=print)
+    print("Resources successfully destroyed.")
+
+if __name__ == "__main__":
+    import sys
+    if len(sys.argv) > 1 and sys.argv[1] == "destroy":
+       destroy_pods()
+    else:
+        deploy_pods_on_specific_node()

@@ -24,4 +24,5 @@ if __name__ == '__main__':
                 components.append(yaml.load(f, Loader=yaml.FullLoader))
     optimizer = Optimizer(reserved_kublet_cpu, kubelet_reserved_ram, port, '--solver, lex-or-tools')
     _, resources, order = optimizer.optimize(configuration, components)
-    generate_pulumi_yaml_definition(resources, order, components, folder_name)
+    generate_python_script(resources, order, components, folder_name)
+    #generate_pulumi_yaml_definition(resources, order, components, folder_name)
