@@ -6,3 +6,8 @@ k3d-k3s-default-agent-0:
   resources:
     RAM: "4G"
     cpu: "900m"
+
+---
+services_present:
+  name:
+    - proxy

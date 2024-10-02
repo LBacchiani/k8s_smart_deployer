@@ -13,15 +13,15 @@ if __name__ == '__main__':
     folder_name = path.split('/')[-2]
     extension = '*.yaml'
     file_paths = glob.glob(f"{path}/{extension}")
-    vm_file = path + args[3]
-    with open(vm_file, 'r') as f:
-        vm_properties = yaml.load(f, Loader=yaml.FullLoader)
+    configuration_file = path + args[3]
+    with open(configuration_file, 'r') as f:
+        configuration = list(yaml.safe_load_all(f))
     port = args[4]
     components = []
     for file_path in file_paths:
-        if vm_file != file_path:
+        if configuration_file != file_path:
             with open(file_path, 'r') as f:
                 components.append(yaml.load(f, Loader=yaml.FullLoader))
     optimizer = Optimizer(reserved_kublet_cpu, kubelet_reserved_ram, port, '--solver, lex-or-tools')
-    _, resources, order = optimizer.optimize(vm_properties, components)
+    _, resources, order = optimizer.optimize(configuration, components)
     generate_pulumi_yaml_definition(resources, order, components, folder_name)

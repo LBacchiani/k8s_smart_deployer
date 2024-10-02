@@ -165,9 +165,9 @@ class Optimizer:
         return list(toposort.toposort(graph))
 
     #TODO SEPARATE OPTIMIZATION FROM RESOURCE LEFT COMPUTATION
-    def optimize(self, vm_properties, components):
+    def optimize(self, configurations, components):
         query_url = 'http://localhost:{}/process'.format(self.port)
-        spec = self.build_specification(vm_properties, components)
+        spec = self.build_specification(configurations[0], components)
         #objs = list(spec['components'].keys()) + list(spec['locations'].keys())
         configuration = requests_post(query_url, data=json.dumps(spec)).json()
         if 'error' not in configuration:
