@@ -21,6 +21,7 @@ def generate_yaml(node_name, config_file, folder_name):
         with open(file_name, "w") as file:
             yaml.dump(files_dict[file_name], file)
 
+
 def create_pod_definition(component, containers, node_name):
     return {
         'apiVersion': 'v1',
@@ -35,42 +36,53 @@ def create_pod_definition(component, containers, node_name):
         }
     }
 
-def generate_pulumi_yaml_definition(resources, order, components, folder_name):
-    pulumi_pod_definitions = []
+
+def add_pod_definitions(components, order=None):
+    pod_definitions = []
     previous_pods = []
 
-    for group in order:
-        current_pods = []
-        for (node, _, service_name, service_index) in group:
-            component = f"{service_name}-{service_index}"
-            yaml_file = list(filter(lambda x: x['metadata']['name'] == service_name, components))[0]
-            containers = yaml_file['spec']['template']['spec']['containers']
-
-            pod_definition = {
-                'name': f"{component}-pod",
+    if not order:
+        for comp in components:
+            service_name = comp['metadata']['name']
+            containers = comp['spec']['template']['spec']['containers']
+            pod_definitions.append({
+                'name': f"{service_name}-pod",
                 'type': 'kubernetes:core/v1:Pod',
-                'properties': create_pod_definition(component, containers, node),
+                'properties': create_pod_definition(service_name, containers, "default-node"),
                 'options': {}
-            }
+            })
+    else:
+        for group in order:
+            current_pods = []
+            for node, _, service_name, service_index in group:
+                component = f"{service_name}-{service_index}"
+                containers = next(comp['spec']['template']['spec']['containers']
+                                  for comp in components if comp['metadata']['name'] == service_name)
 
-            if previous_pods:
-                pod_definition['options']['dependsOn'] = previous_pods
+                pod_def = {
+                    'name': f"{component}-pod",
+                    'type': 'kubernetes:core/v1:Pod',
+                    'properties': create_pod_definition(component, containers, node),
+                    'options': {'dependsOn': previous_pods} if previous_pods else {}
+                }
+                pod_definitions.append(pod_def)
+                current_pods.append(f"${{{component}-pod}}")
 
-            pulumi_pod_definitions.append(pod_definition)
-            current_pods.append("${" + f"{component}-pod" + "}")
+            previous_pods = current_pods
 
-        previous_pods = current_pods
+    return pod_definitions
 
-    file_name = f"deployments/{folder_name}/pulumi_deployment.yaml"
+def generate_pulumi_yaml_definition(resources, order, components, folder_name):
+    os.makedirs(f"deployments/{folder_name}", exist_ok=True)
+
     pulumi_yaml = {
         'name': 'my-k8s-app',
         'runtime': 'yaml',
-        'resources': {pod['name']: pod for pod in pulumi_pod_definitions}
+        'resources': {pod['name']: pod for pod in add_pod_definitions(components, order)}
     }
 
-    with open(file_name, "w") as file:
+    with open(f"deployments/{folder_name}/pulumi_deployment.yaml", "w") as file:
         yaml.dump(pulumi_yaml, file, default_flow_style=False, Dumper=NoAliasDumper)
 
-    file_name = f"deployments/{folder_name}/vm_annotations.yaml"
-    with open(file_name, "w") as file:
+    with open(f"deployments/{folder_name}/vm_annotations.yaml", "w") as file:
         yaml.dump(resources, file, default_flow_style=False)
