@@ -2,11 +2,12 @@ import pulumi
 import pulumi_kubernetes as k8s
 import os
 from pulumi import automation as auto
+import uuid
 
 def pulumi_program():
     {% for service_group in deployment_data %}
         {% for service in service_group %}
-    pod_{{ service['service_name'] }}_{{ service['service_index'] }} = k8s.core.v1.Pod("pod-{{ service['service_name'] }}-{{ service['service_index'] }}",
+    {{ service['variable_name'] }} = k8s.core.v1.Pod("{{ service['variable_name'] }}",
         metadata={
             "name": f"pod-{{ service['service_name'] }}-{{ service['service_index'] }}",
         },
@@ -43,10 +44,10 @@ def pulumi_program():
         {% endfor %}
     {% endfor %}
 
-def deploy_pods_on_specific_node():
+def deploy_orchestration():
     stack = auto.create_or_select_stack(
-        stack_name="dev-1",
-        project_name="k8s-pods-on-specific-node",
+        stack_name="{{ increase_name }}",
+        project_name="{{ project_name }}",
         program=pulumi_program
     )
 
@@ -72,8 +73,8 @@ def deploy_pods_on_specific_node():
 
 def destroy_pods():
     stack = auto.create_or_select_stack(
-        stack_name="dev-1",
-        project_name="k8s-pods-on-specific-node",
+        stack_name="{{ increase_name }}",
+        project_name="{{ project_name }}",
         program=lambda: None
     )
 
@@ -86,4 +87,4 @@ if __name__ == "__main__":
     if len(sys.argv) > 1 and sys.argv[1] == "destroy":
        destroy_pods()
     else:
-        deploy_pods_on_specific_node()
+        deploy_orchestration()

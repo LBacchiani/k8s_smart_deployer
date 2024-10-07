@@ -1,10 +1,20 @@
 from jinja2 import Environment, FileSystemLoader
 import yaml
 import os
+import re
+import uuid
 
 class NoAliasDumper(yaml.SafeDumper):
     def ignore_aliases(self, data):
         return True
+
+def to_valid_variable_name(input_string: str) -> str:
+    cleaned_string = re.sub(r'[^0-9a-zA-Z_]', '_', input_string)
+
+    if not cleaned_string[0].isalpha() and cleaned_string[0] != '_':
+        cleaned_string = f'_{cleaned_string}'
+
+    return cleaned_string
 
 
 def prepare_deployment_data(order, components, excluded_services):
@@ -17,6 +27,7 @@ def prepare_deployment_data(order, components, excluded_services):
         return {
             "node_name": node_name,
             "service_name": service_name,
+            "variable_name": to_valid_variable_name(f"pod_{service_name}_{service_index}"),
             "service_index": service_index,
             "image": component['spec']['template']['spec']['containers'][0]['image'],
             "cpu": component['spec']['template']['spec']['containers'][0]['resources']['requests']['cpu'],
@@ -73,8 +84,14 @@ def generate_python_script(resources, order, components, folder_name, excluded_s
     env = Environment(loader=file_loader)
     template = env.get_template('orchestration_program.jinja2')
 
+    increase_name = f"increase-{uuid.uuid4()}"
+    project_name = f"pulumi-k8s-{folder_name}-{increase_name}"
     deployment_data = prepare_deployment_data(order, components, excluded_services)
-    rendered_script = template.render(deployment_data=deployment_data)
+    rendered_script = template.render(
+        deployment_data=deployment_data,
+        increase_name=increase_name,
+        project_name=project_name
+    )
 
     with open(f"deployments/{folder_name}/pulumi_deployment.py", 'w') as f:
         f.write(rendered_script)
