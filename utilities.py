@@ -37,3 +37,20 @@ def refine_name(name):
     '''Zephyrus2 gives dash symbols in names meaning so a workaround like this is needed.'''
     if '-' not in name: return name
     else: return name.replace('-', '_')
+
+
+def node_specs(vm_properties, kubelet_cpu, kubelet_ram):
+    nodes = {}
+    for x in vm_properties.keys():
+        cpu = cpu_convertion(vm_properties[x]['resources']['cpu']) - cpu_convertion(kubelet_cpu)
+        ram = ram_convertion(vm_properties[x]['resources']['RAM']) - ram_convertion(kubelet_ram)
+        nodes[x] = {'num': 1, 'resources': {'RAM': ram, 'cpu': cpu}} #TODO add "cost"
+    return nodes
+
+#TODO FIX ME
+def update_usage(locations, components, configuration):
+    for node in configuration:
+        del(locations[node]['num'])
+        for component in configuration[node]['0']:
+            locations[node]['resources']['RAM'] -= components[component]['resources']['RAM'] * configuration[node]['0'][component]
+            locations[node]['resources']['cpu'] -= components[component]['resources']['cpu'] * configuration[node]['0'][component]

@@ -1,13 +1,18 @@
-k3d-k3s-default-agent-1:
+kubelet:
   resources:
-    RAM: "4G"
-    cpu: "900m"
-k3d-k3s-default-agent-0:
-  resources:
-    RAM: "4G"
-    cpu: "900m"
-
+    RAM: "100M"
+    cpu: "100m"
 ---
-services_present:
+nodes:
+  k3d-k3s-default-agent-1:
+    resources:
+      RAM: "4G"
+      cpu: "1000m"
+  k3d-k3s-default-agent-0:
+    resources:
+      RAM: "4G"
+      cpu: "1000m"
+---
+existingDependencies:
   name:
     - abs

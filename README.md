@@ -11,13 +11,15 @@ where ```<PORT>``` is a user-defined port
 
 To run the tool open a terminal in the root folder and execute 
 ```
-python main.py ARG1 ARG2 ARG3 ARG4
+python main.py ARG1 ARG2 ARG3
 ```
 where
 
 ```
-ARG1 is the kubelet reserved ram
-ARG2 is the kubelet reserved CPU
-ARG3 is the path to the components specification
-ARG4 is the value of the <PORT> specified after launching the zephyrus2 container
+ARG1 is the path to the declarative specifications of services and resources
+ARG2 is the value of the <PORT> specified after launching the zephyrus2 container
+ARG3 is the orchestration language
 ```
+
+Currently, we only support ```YAML``` and ```Python``` as orchestration languages. To choose among them, 
+use ```yaml``` and ```py```

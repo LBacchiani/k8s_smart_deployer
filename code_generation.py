@@ -3,6 +3,7 @@ import yaml
 import os
 import re
 import uuid
+import toposort
 
 class NoAliasDumper(yaml.SafeDumper):
     def ignore_aliases(self, data):
@@ -171,3 +172,10 @@ def generate_pulumi_yaml_definition(resources, order, components, folder_name, e
 
     with open(f"deployments/{folder_name}/vm_annotations.yaml", "w") as file:
         yaml.dump(resources, file, default_flow_style=False)
+
+def get_topological_sort(bindings):
+    graph = {}
+    for i in bindings:
+        graph.setdefault((i["req_location"], i["req_location_num"], i["req_comp"], i["req_comp_num"]), set()).add(
+            ( i["prov_location"],i["prov_location_num"],i["prov_comp"],i["prov_comp_num"]))
+    return list(toposort.toposort(graph))
