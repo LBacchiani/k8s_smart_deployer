@@ -22,7 +22,7 @@ class Optimizer:
             except KeyError as e:
                 raise Exception('Resource request for {}\'s {} container lacks {} key.'
                                 .format(component['metadata']['name'], container['name'], e))
-        to_return['resources'] = {'RAM': total_ram, 'cpu': total_cpu}
+        to_return['resources'] = {'memory': total_ram, 'cpu': total_cpu}
         if 'ports' in component:
             required = {}
             for port in component['ports']['required']['strong']:
@@ -77,7 +77,7 @@ class Optimizer:
 
     def build_specification(self, vm_properties, components):
         spec = {}
-        spec['locations'] = node_specs(vm_properties,  self.reserved_kublet_cpu,  self.reserved_kublet_ram)
+        spec['locations'] = compute_resources(vm_properties, self.reserved_kublet_cpu, self.reserved_kublet_ram)
         spec['components'] = {}
         if self.options: spec['options'] = self.options
         spec['specification'] = ''
@@ -99,7 +99,6 @@ class Optimizer:
         if 'error' in configuration:
             print('Configuration not found')
             exit(1)
-        #self.update_usage(spec['locations'], spec['components'], configuration['configuration']['locations'])
         for node in configuration['configuration']['locations']:
             configuration['configuration']['locations'][node]["0"] = \
                 {refine_name(key): value

@@ -1,0 +1,14 @@
+k3d-k3s-default-agent-0:
+  num: 1
+  resources:
+    cpu: 0
+    memory: 2700
+k3d-k3s-default-agent-1:
+  num: 1
+  resources:
+    cpu: 0
+    memory: 2400
+---
+existingDependencies:
+  name:
+  - abs

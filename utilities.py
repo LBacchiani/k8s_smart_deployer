@@ -39,18 +39,25 @@ def refine_name(name):
     else: return name.replace('-', '_')
 
 
-def node_specs(vm_properties, kubelet_cpu, kubelet_ram):
+def compute_resources(vm_properties, occupied_cpu, occupied_ram):
     nodes = {}
     for x in vm_properties.keys():
-        cpu = cpu_convertion(vm_properties[x]['resources']['cpu']) - cpu_convertion(kubelet_cpu)
-        ram = ram_convertion(vm_properties[x]['resources']['RAM']) - ram_convertion(kubelet_ram)
-        nodes[x] = {'num': 1, 'resources': {'RAM': ram, 'cpu': cpu}} #TODO add "cost"
+        cpu = cpu_convertion(vm_properties[x]['resources']['cpu']) - cpu_convertion(occupied_cpu)
+        ram = ram_convertion(vm_properties[x]['resources']['memory']) - ram_convertion(occupied_ram)
+        nodes[x] = {'num': 1, 'resources': {'memory': ram, 'cpu': cpu}} #TODO add "cost"
     return nodes
 
-#TODO FIX ME
-def update_usage(locations, components, configuration):
-    for node in configuration:
-        del(locations[node]['num'])
-        for component in configuration[node]['0']:
-            locations[node]['resources']['RAM'] -= components[component]['resources']['RAM'] * configuration[node]['0'][component]
-            locations[node]['resources']['cpu'] -= components[component]['resources']['cpu'] * configuration[node]['0'][component]
+def update_usage(placement, requirements, resources, kubelet_cpu, kubelet_ram):
+    resources_left = compute_resources(resources, kubelet_cpu, kubelet_ram)
+    for node in placement:
+        for (s,n) in placement[node]:
+            cpu = cpu_convertion(requirements[s]['cpu']) * n
+            mem = ram_convertion(requirements[s]['memory']) * n
+            resources_left[node]['resources']['cpu'] -= cpu
+            resources_left[node]['resources']['memory'] -= mem
+    return resources_left
+
+
+
+
+
