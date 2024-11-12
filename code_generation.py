@@ -3,7 +3,7 @@ import yaml
 import os
 import re
 import uuid
-import toposort
+
 
 class NoAliasDumper(yaml.SafeDumper):
     def ignore_aliases(self, data):
@@ -16,13 +16,6 @@ def to_valid_variable_name(input_string: str) -> str:
         cleaned_string = f'_{cleaned_string}'
 
     return cleaned_string
-
-def get_topological_sort(bindings):
-    graph = {}
-    for i in bindings:
-        graph.setdefault((i["req_location"], i["req_location_num"], i["req_comp"], i["req_comp_num"]), set()).add(
-            ( i["prov_location"],i["prov_location_num"],i["prov_comp"],i["prov_comp_num"]))
-    return list(toposort.toposort(graph))
 
 def prepare_deployment_data(order, components, excluded_services):
     excluded_service_names = set(excluded_services.get('services_present', {}).get('name', []))

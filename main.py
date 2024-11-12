@@ -43,12 +43,12 @@ if __name__ == '__main__':
     resource_left = update_usage(placement, requirements, vms, kubelet_cpu, kubelet_ram)
     os.makedirs(target_folder, exist_ok=True)
     with open(f"{target_folder}/vm_annotations.yaml", "w") as file:
-        yaml.dump(resource_left, file, default_flow_style=False)
+        yaml.dump({'nodes': resource_left}, file, default_flow_style=False)
         file.write('---\n')
         yaml.dump({'existingDependencies': {'name': existing_dep}}, file, default_flow_style=False)
 
-    ##the topological sort must be done during code gen##
-    # Use the output_format to determine which generation function to call
+    ##code generation##
+    # order = get_topological_sort(configuration['optimized_bindings'])
     # if language == 'py':
     #     generate_python_script(resources, order, components, folder_name, excluded_services)
     # elif language == 'yaml':
