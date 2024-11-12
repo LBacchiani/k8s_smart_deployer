@@ -28,7 +28,6 @@ def prepare_deployment_data(order, components):
         if service_name not in name_to_variable:
             name_to_variable[service_name] = []
         service_props = component_mapping[service_name]
-        print(service_props)
         variable_name = service_name + '_' + to_valid_variable_name(str(uuid.uuid4()))
         service_data = create_service_data(
             node_name=node_name,

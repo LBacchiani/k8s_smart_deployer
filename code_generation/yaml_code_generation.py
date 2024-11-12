@@ -8,6 +8,8 @@ class NoAliasDumper(yaml.SafeDumper):
     def ignore_aliases(self, data):
         return True
 
+
+
 def add_pod_definitions(order, components):
     component_mapping = {comp['metadata']['name']: comp for comp in components}
     pod_definitions = []
@@ -45,13 +47,17 @@ def create_pod_definition(component, containers, node_name):
         }
     }
 
+def no_dash_representer(dumper, value):
+    return dumper.represent_mapping('tag:yaml.org,2002:map', value.keys(), flow_style=False)
+
 
 def generate_yaml_definition(order, components, folder_name):
     os.makedirs(f"{folder_name}", exist_ok=True)
+    yaml.add_representer(dict, no_dash_representer)
     pulumi_yaml = {
         'name': 'my-k8s-app',
         'runtime': 'yaml',
         'resources': {pod['name']: pod for pod in add_pod_definitions(order, components)}
     }
     with open(f"{folder_name}/pulumi_deployment.yaml", "w") as file:
-        yaml.dump(pulumi_yaml, file, default_flow_style=False, Dumper=NoAliasDumper)
+        yaml.dump(pulumi_yaml, file, default_flow_style=False, Dumper=NoAliasDumper, sort_keys=False)
