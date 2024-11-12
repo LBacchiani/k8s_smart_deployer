@@ -47,7 +47,7 @@ def generate_python_script(order, components, folder_name):
     template = env.get_template('orchestration_program.jinja2')
 
     increase_name = f"increase-{uuid.uuid4()}"
-    project_name = f"pulumi-k8s-{folder_name}-{increase_name}"
+    project_name = f"pulumi-k8s-{increase_name}"
     deployment_data = prepare_deployment_data(order, components)
     rendered_script = template.render(
         deployment_data=deployment_data,
