@@ -7,18 +7,20 @@ nodes:
   k3d-k3s-default-agent-1:
     resources:
       memory: "4G"
-      cpu: "900m"
+      cpu: "1000"
   k3d-k3s-default-agent-0:
     resources:
       memory: "4G"
-      cpu: "800m"
+      cpu: "1000"
   k3d-k3s-default-agent-2:
     resources:
       memory: "4G"
-      cpu: "800m"
+      cpu: "1000"
+  k3d-k3s-default-agent-3:
+    resources:
+      memory: "4G"
+      cpu: "1000"
 ---
 existingDependencies:
-  - name: "proxy"
-    value: 1
-
-
+  name:
+    - proxy

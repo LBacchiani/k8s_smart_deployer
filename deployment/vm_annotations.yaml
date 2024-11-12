@@ -16,5 +16,7 @@ nodes:
       memory: '2900000000'
 ---
 existingDependencies:
-  name:
-  - proxy
+- name: proxy
+  value: 3
+- name: backend
+  value: 3

@@ -45,6 +45,7 @@ def create_pod_definition(component, containers, node_name):
         }
     }
 
+
 def generate_yaml_definition(order, components, folder_name):
     os.makedirs(f"{folder_name}", exist_ok=True)
     pulumi_yaml = {

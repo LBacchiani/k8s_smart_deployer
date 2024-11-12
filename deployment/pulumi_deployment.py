@@ -6,14 +6,14 @@ from pulumi import automation as auto
 def pulumi_program():
     
         
-    proxy_a26e3655_d2f7_464d_b561_02022707805f = k8s.core.v1.Pod("proxy_a26e3655_d2f7_464d_b561_02022707805f",
+    proxy__119aa883_e154_40ca_91ce_26ae816ed44c = k8s.core.v1.Pod("proxy__119aa883_e154_40ca_91ce_26ae816ed44c",
         metadata={
-            "name": f"proxy_a26e3655_d2f7_464d_b561_02022707805f",
+            "name": f"proxy__119aa883_e154_40ca_91ce_26ae816ed44c",
         },
         spec={
             "containers": [
                 {
-                    "name": "proxy_a26e3655_d2f7_464d_b561_02022707805f-container",
+                    "name": "proxy__119aa883_e154_40ca_91ce_26ae816ed44c-container",
                     "image": "k8s.gcr.io/pause:2.0",
                     "resources": {
                         "requests": {
@@ -28,14 +28,14 @@ def pulumi_program():
         
     )
         
-    proxy__77ad5997_746a_4787_9bf7_1b20862c2619 = k8s.core.v1.Pod("proxy__77ad5997_746a_4787_9bf7_1b20862c2619",
+    proxy__89e7ce31_f9bc_4451_8b50_3b9d29bfd2b5 = k8s.core.v1.Pod("proxy__89e7ce31_f9bc_4451_8b50_3b9d29bfd2b5",
         metadata={
-            "name": f"proxy__77ad5997_746a_4787_9bf7_1b20862c2619",
+            "name": f"proxy__89e7ce31_f9bc_4451_8b50_3b9d29bfd2b5",
         },
         spec={
             "containers": [
                 {
-                    "name": "proxy__77ad5997_746a_4787_9bf7_1b20862c2619-container",
+                    "name": "proxy__89e7ce31_f9bc_4451_8b50_3b9d29bfd2b5-container",
                     "image": "k8s.gcr.io/pause:2.0",
                     "resources": {
                         "requests": {
@@ -50,14 +50,14 @@ def pulumi_program():
         
     )
         
-    backend__5a208d0f_3ab6_4493_be1d_6b433e24eb86 = k8s.core.v1.Pod("backend__5a208d0f_3ab6_4493_be1d_6b433e24eb86",
+    backend_cf3f22af_4fb0_4beb_9c34_6f04fcd35631 = k8s.core.v1.Pod("backend_cf3f22af_4fb0_4beb_9c34_6f04fcd35631",
         metadata={
-            "name": f"backend__5a208d0f_3ab6_4493_be1d_6b433e24eb86",
+            "name": f"backend_cf3f22af_4fb0_4beb_9c34_6f04fcd35631",
         },
         spec={
             "containers": [
                 {
-                    "name": "backend__5a208d0f_3ab6_4493_be1d_6b433e24eb86-container",
+                    "name": "backend_cf3f22af_4fb0_4beb_9c34_6f04fcd35631-container",
                     "image": "k8s.gcr.io/pause:2.0",
                     "resources": {
                         "requests": {
@@ -72,20 +72,48 @@ def pulumi_program():
         
         ,opts=pulumi.ResourceOptions(depends_on=[
             
-                ['proxy_a26e3655_d2f7_464d_b561_02022707805f', 'proxy__77ad5997_746a_4787_9bf7_1b20862c2619'],
+                ['proxy__119aa883_e154_40ca_91ce_26ae816ed44c'],
             
         ])
         
     )
         
-    backend_deb6a4be_6570_40e6_ad5b_d527c48c47c0 = k8s.core.v1.Pod("backend_deb6a4be_6570_40e6_ad5b_d527c48c47c0",
+    backend__915cd032_b4fe_4453_9a72_84543a599ab0 = k8s.core.v1.Pod("backend__915cd032_b4fe_4453_9a72_84543a599ab0",
         metadata={
-            "name": f"backend_deb6a4be_6570_40e6_ad5b_d527c48c47c0",
+            "name": f"backend__915cd032_b4fe_4453_9a72_84543a599ab0",
         },
         spec={
             "containers": [
                 {
-                    "name": "backend_deb6a4be_6570_40e6_ad5b_d527c48c47c0-container",
+                    "name": "backend__915cd032_b4fe_4453_9a72_84543a599ab0-container",
+                    "image": "k8s.gcr.io/pause:2.0",
+                    "resources": {
+                        "requests": {
+                            "cpu": "300m",
+                            "memory": "500M"
+                        }
+                    }
+                }
+            ],
+            "nodeName": "k3d-k3s-default-agent-2"
+        }
+        
+        ,opts=pulumi.ResourceOptions(depends_on=[
+            
+                ['proxy__119aa883_e154_40ca_91ce_26ae816ed44c'],
+            
+        ])
+        
+    )
+        
+    backend__822426e6_7048_4a4f_9006_7a4af372d5da = k8s.core.v1.Pod("backend__822426e6_7048_4a4f_9006_7a4af372d5da",
+        metadata={
+            "name": f"backend__822426e6_7048_4a4f_9006_7a4af372d5da",
+        },
+        spec={
+            "containers": [
+                {
+                    "name": "backend__822426e6_7048_4a4f_9006_7a4af372d5da-container",
                     "image": "k8s.gcr.io/pause:2.0",
                     "resources": {
                         "requests": {
@@ -100,35 +128,7 @@ def pulumi_program():
         
         ,opts=pulumi.ResourceOptions(depends_on=[
             
-                ['proxy_a26e3655_d2f7_464d_b561_02022707805f', 'proxy__77ad5997_746a_4787_9bf7_1b20862c2619'],
-            
-        ])
-        
-    )
-        
-    backend__754fa0e1_36ae_42a6_b861_8e405dc4ff1c = k8s.core.v1.Pod("backend__754fa0e1_36ae_42a6_b861_8e405dc4ff1c",
-        metadata={
-            "name": f"backend__754fa0e1_36ae_42a6_b861_8e405dc4ff1c",
-        },
-        spec={
-            "containers": [
-                {
-                    "name": "backend__754fa0e1_36ae_42a6_b861_8e405dc4ff1c-container",
-                    "image": "k8s.gcr.io/pause:2.0",
-                    "resources": {
-                        "requests": {
-                            "cpu": "300m",
-                            "memory": "500M"
-                        }
-                    }
-                }
-            ],
-            "nodeName": "k3d-k3s-default-agent-2"
-        }
-        
-        ,opts=pulumi.ResourceOptions(depends_on=[
-            
-                ['proxy_a26e3655_d2f7_464d_b561_02022707805f', 'proxy__77ad5997_746a_4787_9bf7_1b20862c2619'],
+                ['proxy__119aa883_e154_40ca_91ce_26ae816ed44c'],
             
         ])
         
@@ -139,22 +139,22 @@ def pulumi_program():
     # Export pod names
     
         
-    pulumi.export("proxy_a26e3655_d2f7_464d_b561_02022707805f_name", proxy_a26e3655_d2f7_464d_b561_02022707805f.metadata["name"])
+    pulumi.export("proxy__119aa883_e154_40ca_91ce_26ae816ed44c_name", proxy__119aa883_e154_40ca_91ce_26ae816ed44c.metadata["name"])
         
-    pulumi.export("proxy__77ad5997_746a_4787_9bf7_1b20862c2619_name", proxy__77ad5997_746a_4787_9bf7_1b20862c2619.metadata["name"])
+    pulumi.export("proxy__89e7ce31_f9bc_4451_8b50_3b9d29bfd2b5_name", proxy__89e7ce31_f9bc_4451_8b50_3b9d29bfd2b5.metadata["name"])
         
-    pulumi.export("backend__5a208d0f_3ab6_4493_be1d_6b433e24eb86_name", backend__5a208d0f_3ab6_4493_be1d_6b433e24eb86.metadata["name"])
+    pulumi.export("backend_cf3f22af_4fb0_4beb_9c34_6f04fcd35631_name", backend_cf3f22af_4fb0_4beb_9c34_6f04fcd35631.metadata["name"])
         
-    pulumi.export("backend_deb6a4be_6570_40e6_ad5b_d527c48c47c0_name", backend_deb6a4be_6570_40e6_ad5b_d527c48c47c0.metadata["name"])
+    pulumi.export("backend__915cd032_b4fe_4453_9a72_84543a599ab0_name", backend__915cd032_b4fe_4453_9a72_84543a599ab0.metadata["name"])
         
-    pulumi.export("backend__754fa0e1_36ae_42a6_b861_8e405dc4ff1c_name", backend__754fa0e1_36ae_42a6_b861_8e405dc4ff1c.metadata["name"])
+    pulumi.export("backend__822426e6_7048_4a4f_9006_7a4af372d5da_name", backend__822426e6_7048_4a4f_9006_7a4af372d5da.metadata["name"])
         
     
 
 def deploy_orchestration():
     stack = auto.create_or_select_stack(
-        stack_name="increase-241281c2-dd30-413c-8be5-78c1844d2353",
-        project_name="pulumi-k8s-./deployment-increase-241281c2-dd30-413c-8be5-78c1844d2353",
+        stack_name="increase-140c19f6-d502-4405-9b31-60212600d032",
+        project_name="pulumi-k8s-./deployment-increase-140c19f6-d502-4405-9b31-60212600d032",
         program=pulumi_program
     )
 
@@ -174,22 +174,22 @@ def deploy_orchestration():
 
     
         
-    print(f"Pod proxy_a26e3655_d2f7_464d_b561_02022707805f Name: {up_res.outputs['proxy_a26e3655_d2f7_464d_b561_02022707805f_name'].value}")
+    print(f"Pod proxy__119aa883_e154_40ca_91ce_26ae816ed44c Name: {up_res.outputs['proxy__119aa883_e154_40ca_91ce_26ae816ed44c_name'].value}")
         
-    print(f"Pod proxy__77ad5997_746a_4787_9bf7_1b20862c2619 Name: {up_res.outputs['proxy__77ad5997_746a_4787_9bf7_1b20862c2619_name'].value}")
+    print(f"Pod proxy__89e7ce31_f9bc_4451_8b50_3b9d29bfd2b5 Name: {up_res.outputs['proxy__89e7ce31_f9bc_4451_8b50_3b9d29bfd2b5_name'].value}")
         
-    print(f"Pod backend__5a208d0f_3ab6_4493_be1d_6b433e24eb86 Name: {up_res.outputs['backend__5a208d0f_3ab6_4493_be1d_6b433e24eb86_name'].value}")
+    print(f"Pod backend_cf3f22af_4fb0_4beb_9c34_6f04fcd35631 Name: {up_res.outputs['backend_cf3f22af_4fb0_4beb_9c34_6f04fcd35631_name'].value}")
         
-    print(f"Pod backend_deb6a4be_6570_40e6_ad5b_d527c48c47c0 Name: {up_res.outputs['backend_deb6a4be_6570_40e6_ad5b_d527c48c47c0_name'].value}")
+    print(f"Pod backend__915cd032_b4fe_4453_9a72_84543a599ab0 Name: {up_res.outputs['backend__915cd032_b4fe_4453_9a72_84543a599ab0_name'].value}")
         
-    print(f"Pod backend__754fa0e1_36ae_42a6_b861_8e405dc4ff1c Name: {up_res.outputs['backend__754fa0e1_36ae_42a6_b861_8e405dc4ff1c_name'].value}")
+    print(f"Pod backend__822426e6_7048_4a4f_9006_7a4af372d5da Name: {up_res.outputs['backend__822426e6_7048_4a4f_9006_7a4af372d5da_name'].value}")
         
     
 
 def destroy_pods():
     stack = auto.create_or_select_stack(
-        stack_name="increase-241281c2-dd30-413c-8be5-78c1844d2353",
-        project_name="pulumi-k8s-./deployment-increase-241281c2-dd30-413c-8be5-78c1844d2353",
+        stack_name="increase-140c19f6-d502-4405-9b31-60212600d032",
+        project_name="pulumi-k8s-./deployment-increase-140c19f6-d502-4405-9b31-60212600d032",
         program=lambda: None
     )
 

@@ -16,7 +16,7 @@ if __name__ == '__main__':
     components = []
     kubelet_ram = "0"
     kubelet_cpu = "0"
-    existing_dep = []
+    existing_dep = {}
     vms = {}
     port = args[1]
     language = args[2]
@@ -33,28 +33,41 @@ if __name__ == '__main__':
                     if 'nodes' in c:
                         vms = c['nodes']
                     if 'existingDependencies' in c:
-                        existing_dep = c['existingDependencies']['name']
+                        for dep in c['existingDependencies']:
+                            existing_dep[dep['name']] = dep['value']
 
     #manage dependencies already satisfied#
     for c in components:
         if 'ports' in c:
-            dependencies_left = [d for d in c['ports']['required']['strong'] if d['name'] not in existing_dep]
-            if not dependencies_left: del c['ports']
+            dependencies_left = []
+            for dep in c['ports']['required']['strong']:
+                name, val = dep['name'], dep['value']
+                res = val - existing_dep[name]
+                if res > 0:
+                    dependencies_left.append({'name': name, 'value': res})
+            if not dependencies_left:
+                del c['ports']
+            else:
+                c['ports']['required']['strong'] = dependencies_left
+
 
     #compute configuration
     optimizer = Optimizer(kubelet_cpu, kubelet_ram, port, '--solver, lex-or-tools')
     configuration = optimizer.optimize(vms, components)
-
     ###compute resource left
-    existing_dep += [x['provider'] for x in configuration['configuration']['bindings']]
-    placement = {x: [(y,configuration['configuration']['locations'][x]['0'][y]) for y in configuration['configuration']['locations'][x]['0']] for x in configuration['configuration']['locations']}
+    for comp in components:
+        if comp['metadata']['name'] in existing_dep:
+            existing_dep[comp['metadata']['name']] += comp['spec']['replicas']
+        else:
+            existing_dep[comp['metadata']['name']] = comp['spec']['replicas']
+    placement = {x: [(y, configuration['configuration']['locations'][x]['0'][y]) for y in configuration['configuration']['locations'][x]['0']] for x in configuration['configuration']['locations']}
     requirements = {x['metadata']['name']: x['spec']['template']['spec']['containers'][0]['resources']['requests'] for x in components}
     resource_left = update_usage(placement, requirements, vms, kubelet_cpu, kubelet_ram)
     os.makedirs(target_folder, exist_ok=True)
     with open(f"{target_folder}/vm_annotations.yaml", "w") as file:
         yaml.dump({'nodes': resource_left}, file, default_flow_style=False)
         file.write('---\n')
-        yaml.dump({'existingDependencies': {'name': existing_dep}}, file, default_flow_style=False)
+        yaml.dump({'existingDependencies': [{'name': k, 'value': existing_dep[k]} for k in existing_dep]}, file, default_flow_style=False)
 
     ##code generation##
     order = get_topological_sort(configuration['optimized_bindings'])
@@ -64,7 +77,7 @@ if __name__ == '__main__':
                         for x in configuration['configuration']['locations'][k]['0']
                         for _ in range(configuration['configuration']['locations'][k]['0'][x])
                 ]
-    if language == 'py':
+    if language == 'python':
         generate_python_script(order, components, target_folder)
     elif language == 'yaml':
         generate_yaml_definition(order, components, target_folder)
