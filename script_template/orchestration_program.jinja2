@@ -59,7 +59,7 @@ def deploy_orchestration():
     stack.refresh(on_output=print)
 
     print("Previewing changes...")
-    preview = stack.preview(on_output=print)
+    stack.preview(on_output=print)
 
     print("Deploying changes...")
     up_res = stack.up(on_output=print)

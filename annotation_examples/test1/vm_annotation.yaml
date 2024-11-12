@@ -16,4 +16,7 @@ nodes:
     resources:
       memory: "4G"
       cpu: "800m"
-
+---
+existingDependencies:
+  name:
+    - proxy
