@@ -6,14 +6,14 @@ from pulumi import automation as auto
 def pulumi_program():
     
         
-    pod_backend_0 = k8s.core.v1.Pod("pod_backend_0",
+    backend_fb80decd_273e_452b_b4a6_328dcb1d4c0e_0 = k8s.core.v1.Pod("backend_fb80decd_273e_452b_b4a6_328dcb1d4c0e_0",
         metadata={
-            "name": f"pod-backend-0",
+            "name": f"backend_fb80decd_273e_452b_b4a6_328dcb1d4c0e-0",
         },
         spec={
             "containers": [
                 {
-                    "name": "backend-container",
+                    "name": "backend_fb80decd_273e_452b_b4a6_328dcb1d4c0e-container",
                     "image": "k8s.gcr.io/pause:2.0",
                     "resources": {
                         "requests": {
@@ -23,7 +23,51 @@ def pulumi_program():
                     }
                 }
             ],
-            "nodeName": "backend"
+            "nodeName": "k3d-k3s-default-agent-0"
+        }
+        
+    )
+        
+    backend__45a18026_1ab4_4e40_879d_a2c613be709c_1 = k8s.core.v1.Pod("backend__45a18026_1ab4_4e40_879d_a2c613be709c_1",
+        metadata={
+            "name": f"backend__45a18026_1ab4_4e40_879d_a2c613be709c-1",
+        },
+        spec={
+            "containers": [
+                {
+                    "name": "backend__45a18026_1ab4_4e40_879d_a2c613be709c-container",
+                    "image": "k8s.gcr.io/pause:2.0",
+                    "resources": {
+                        "requests": {
+                            "cpu": "300m",
+                            "memory": "500M"
+                        }
+                    }
+                }
+            ],
+            "nodeName": "k3d-k3s-default-agent-0"
+        }
+        
+    )
+        
+    backend_bc49c9f7_2e0d_407b_ada9_4c5aa2035f3b_0 = k8s.core.v1.Pod("backend_bc49c9f7_2e0d_407b_ada9_4c5aa2035f3b_0",
+        metadata={
+            "name": f"backend_bc49c9f7_2e0d_407b_ada9_4c5aa2035f3b-0",
+        },
+        spec={
+            "containers": [
+                {
+                    "name": "backend_bc49c9f7_2e0d_407b_ada9_4c5aa2035f3b-container",
+                    "image": "k8s.gcr.io/pause:2.0",
+                    "resources": {
+                        "requests": {
+                            "cpu": "300m",
+                            "memory": "500M"
+                        }
+                    }
+                }
+            ],
+            "nodeName": "k3d-k3s-default-agent-1"
         }
         
     )
@@ -33,14 +77,18 @@ def pulumi_program():
     # Export pod names
     
         
-    pulumi.export("pod_backend_0_name", pod_backend_0.metadata["name"])
+    pulumi.export("backend_fb80decd_273e_452b_b4a6_328dcb1d4c0e_0_name", backend_fb80decd_273e_452b_b4a6_328dcb1d4c0e_0.metadata["name"])
+        
+    pulumi.export("backend__45a18026_1ab4_4e40_879d_a2c613be709c_1_name", backend__45a18026_1ab4_4e40_879d_a2c613be709c_1.metadata["name"])
+        
+    pulumi.export("backend_bc49c9f7_2e0d_407b_ada9_4c5aa2035f3b_0_name", backend_bc49c9f7_2e0d_407b_ada9_4c5aa2035f3b_0.metadata["name"])
         
     
 
 def deploy_orchestration():
     stack = auto.create_or_select_stack(
-        stack_name="increase-4150c1ad-bbcb-407d-a3a0-7b48f128ecaa",
-        project_name="pulumi-k8s-./deployment-increase-4150c1ad-bbcb-407d-a3a0-7b48f128ecaa",
+        stack_name="increase-f7f4ec0e-e999-46cd-8fa2-a5d42fbf7e27",
+        project_name="pulumi-k8s-./deployment-increase-f7f4ec0e-e999-46cd-8fa2-a5d42fbf7e27",
         program=pulumi_program
     )
 
@@ -60,14 +108,18 @@ def deploy_orchestration():
 
     
         
-    print(f"Pod backend-0 Name: {up_res.outputs['pod_backend_0_name'].value}")
+    print(f"Pod backend_fb80decd_273e_452b_b4a6_328dcb1d4c0e-0 Name: {up_res.outputs['backend_fb80decd_273e_452b_b4a6_328dcb1d4c0e_0_name'].value}")
+        
+    print(f"Pod backend__45a18026_1ab4_4e40_879d_a2c613be709c-1 Name: {up_res.outputs['backend__45a18026_1ab4_4e40_879d_a2c613be709c_1_name'].value}")
+        
+    print(f"Pod backend_bc49c9f7_2e0d_407b_ada9_4c5aa2035f3b-0 Name: {up_res.outputs['backend_bc49c9f7_2e0d_407b_ada9_4c5aa2035f3b_0_name'].value}")
         
     
 
 def destroy_pods():
     stack = auto.create_or_select_stack(
-        stack_name="increase-4150c1ad-bbcb-407d-a3a0-7b48f128ecaa",
-        project_name="pulumi-k8s-./deployment-increase-4150c1ad-bbcb-407d-a3a0-7b48f128ecaa",
+        stack_name="increase-f7f4ec0e-e999-46cd-8fa2-a5d42fbf7e27",
+        project_name="pulumi-k8s-./deployment-increase-f7f4ec0e-e999-46cd-8fa2-a5d42fbf7e27",
         program=lambda: None
     )
 

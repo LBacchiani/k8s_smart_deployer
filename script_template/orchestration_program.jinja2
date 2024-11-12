@@ -8,7 +8,7 @@ def pulumi_program():
         {% for service in service_group %}
     {{ service['variable_name'] }} = k8s.core.v1.Pod("{{ service['variable_name'] }}",
         metadata={
-            "name": f"pod-{{ service['service_name'] }}-{{ service['service_index'] }}",
+            "name": f"{{ service['service_name'] }}-{{ service['service_index'] }}",
         },
         spec={
             "containers": [
@@ -28,7 +28,7 @@ def pulumi_program():
         {% if service['depends_on'] %}
         ,opts=pulumi.ResourceOptions(depends_on=[
             {% for dep in service['depends_on'] %}
-                pod_{{ dep['service_name'] }}_{{ dep['service_index'] }},
+                {{ dep['service_name'] }}_{{ dep['service_index'] }},
             {% endfor %}
         ])
         {% endif %}
@@ -39,7 +39,7 @@ def pulumi_program():
     # Export pod names
     {% for service_group in deployment_data %}
         {% for service in service_group %}
-    pulumi.export("pod_{{ service['service_name'] }}_{{ service['service_index'] }}_name", pod_{{ service['service_name'] }}_{{ service['service_index'] }}.metadata["name"])
+    pulumi.export("{{ service['service_name'] }}_{{ service['service_index'] }}_name", {{ service['service_name'] }}_{{ service['service_index'] }}.metadata["name"])
         {% endfor %}
     {% endfor %}
 
@@ -66,7 +66,7 @@ def deploy_orchestration():
 
     {% for service_group in deployment_data %}
         {% for service in service_group %}
-    print(f"Pod {{ service['service_name'] }}-{{ service['service_index'] }} Name: {up_res.outputs['pod_{{ service['service_name'] }}_{{ service['service_index'] }}_name'].value}")
+    print(f"Pod {{ service['service_name'] }}-{{ service['service_index'] }} Name: {up_res.outputs['{{ service['service_name'] }}_{{ service['service_index'] }}_name'].value}")
         {% endfor %}
     {% endfor %}
 

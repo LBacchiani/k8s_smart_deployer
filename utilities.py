@@ -68,6 +68,16 @@ def get_topological_sort(bindings):
     for i in bindings:
         graph.setdefault((i["req_location"], i["req_location_num"], i["req_comp"], i["req_comp_num"]), set()).add(
             ( i["prov_location"],i["prov_location_num"],i["prov_comp"],i["prov_comp_num"]))
-    return list(toposort.toposort(graph))
+    toposorted = list(toposort.toposort(graph))
+    res = {}
+    for level in toposorted:
+        for node in level:
+            if node[0] not in res:
+                res[node[0]] = []
+            res[node[0]].append((node[2],node[3]))
+    return res
+
+
+
 
 

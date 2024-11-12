@@ -39,6 +39,7 @@ if __name__ == '__main__':
         if 'ports' in c:
             dependencies_left = [d for d in c['ports']['required']['strong'] if d['name'] not in existing_dep]
             if not dependencies_left: del c['ports']
+
     #compute configuration
     optimizer = Optimizer(kubelet_cpu, kubelet_ram, port, '--solver, lex-or-tools')
     configuration = optimizer.optimize(vms, components)
@@ -56,8 +57,12 @@ if __name__ == '__main__':
 
     ##code generation##
     order = get_topological_sort(configuration['optimized_bindings'])
+    if not order:
+        order = {k: [(x, i) for x in configuration['configuration']['locations'][k]['0']
+                            for i in range(configuration['configuration']['locations'][k]['0'][x])
+                    ] for k in configuration['configuration']['locations']}
     if language == 'py':
-        generate_python_script(order, components, target_folder, existing_dep)
+        generate_python_script(order, components, target_folder)
     # elif language == 'yaml':
     #     generate_pulumi_yaml_definition(order, components, target_folder, existing_dep)
     else:
