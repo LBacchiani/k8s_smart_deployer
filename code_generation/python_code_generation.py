@@ -16,6 +16,7 @@ def prepare_deployment_data(order, components):
         return {
             "node_name": node_name,
             "service_name": service_name,
+            "service_label": component['spec']['selector']['matchLabels'],
             "variable_name": f"{service_name}",
             "image": component['spec']['template']['spec']['containers'][0]['image'],
             "cpu": component['spec']['template']['spec']['containers'][0]['resources']['requests']['cpu'],
@@ -27,6 +28,7 @@ def prepare_deployment_data(order, components):
         if service_name not in name_to_variable:
             name_to_variable[service_name] = []
         service_props = component_mapping[service_name]
+        print(service_props)
         variable_name = service_name + '_' + to_valid_variable_name(str(uuid.uuid4()))
         service_data = create_service_data(
             node_name=node_name,
