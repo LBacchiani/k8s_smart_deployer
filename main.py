@@ -1,6 +1,7 @@
 import sys
-from code_generation import *
+
 import yaml
+from code_generation.python_code_generation import generate_python_script
 from utilities import *
 from optimizer import Optimizer
 import os
@@ -32,6 +33,12 @@ if __name__ == '__main__':
                         vms = c['nodes']
                     if 'existingDependencies' in c:
                         existing_dep = c['existingDependencies']['name']
+
+    #manage dependencies already satisfied#
+    for c in components:
+        if 'ports' in c:
+            dependencies_left = [d for d in c['ports']['required']['strong'] if d['name'] not in existing_dep]
+            if not dependencies_left: del c['ports']
     #compute configuration
     optimizer = Optimizer(kubelet_cpu, kubelet_ram, port, '--solver, lex-or-tools')
     configuration = optimizer.optimize(vms, components)
@@ -48,10 +55,10 @@ if __name__ == '__main__':
         yaml.dump({'existingDependencies': {'name': existing_dep}}, file, default_flow_style=False)
 
     ##code generation##
-    # order = get_topological_sort(configuration['optimized_bindings'])
-    # if language == 'py':
-    #     generate_python_script(resources, order, components, folder_name, excluded_services)
+    order = get_topological_sort(configuration['optimized_bindings'])
+    if language == 'py':
+        generate_python_script(order, components, target_folder, existing_dep)
     # elif language == 'yaml':
-    #     generate_pulumi_yaml_definition(resources, order, components, folder_name, excluded_services)
-    # else:
-    #     print(f"Unsupported output format: {output_format}")
+    #     generate_pulumi_yaml_definition(order, components, target_folder, existing_dep)
+    else:
+        print(f"Unsupported output format: {language}")

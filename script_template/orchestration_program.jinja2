@@ -2,7 +2,6 @@ import pulumi
 import pulumi_kubernetes as k8s
 import os
 from pulumi import automation as auto
-import uuid
 
 def pulumi_program():
     {% for service_group in deployment_data %}

@@ -3,12 +3,12 @@ nodes:
     num: 1
     resources:
       cpu: '0'
-      memory: '2700000000'
+      memory: '2400000000'
   k3d-k3s-default-agent-1:
     num: 1
     resources:
-      cpu: '0'
-      memory: '2400000000'
+      cpu: '900'
+      memory: '3900000000'
 ---
 existingDependencies:
   name:
