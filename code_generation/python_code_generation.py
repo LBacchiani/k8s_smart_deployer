@@ -1,56 +1,40 @@
 from jinja2 import Environment, FileSystemLoader
-import yaml
-import re
 import uuid
 import os
-
-
-class NoAliasDumper(yaml.SafeDumper):
-    def ignore_aliases(self, data):
-        return True
-
-
-def to_valid_variable_name(input_string: str) -> str:
-    cleaned_string = re.sub(r'[^0-9a-zA-Z_]', '_', input_string)
-    if not cleaned_string[0].isalpha() and cleaned_string[0] != '_':
-        cleaned_string = f'_{cleaned_string}'
-    return cleaned_string
+from code_generation.utilities import to_valid_variable_name
 
 
 def prepare_deployment_data(order, components):
     component_mapping = {comp['metadata']['name']: comp for comp in components}
     deployment_data = []
-    deployed_services = []
+    name_to_variable = {}
 
-    def create_service_data(node_name, service_name, service_index, component):
+    def create_service_data(node_name, service_name, component):
+        mapped = []
+        if 'ports' in component:
+            mapped = dict(map(lambda x: x.values(), component['ports']['required']['strong']))
         return {
             "node_name": node_name,
             "service_name": service_name,
-            "variable_name": f"{service_name}_{service_index}",
-            "service_index": service_index,
+            "variable_name": f"{service_name}",
             "image": component['spec']['template']['spec']['containers'][0]['image'],
             "cpu": component['spec']['template']['spec']['containers'][0]['resources']['requests']['cpu'],
             "memory": component['spec']['template']['spec']['containers'][0]['resources']['requests']['memory'],
-            "depends_on": [
-                {"service_name": dep_service["service_name"], "service_index": dep_service["service_index"]}
-                for dep_service in deployed_services
-            ]
+            "depends_on": [{"service_name": name_to_variable[k][:mapped[k]]} for k in mapped]
         }
     service_group = []
-    for node_name in order:
-        for service in order[node_name]:
-            service_name = service[0]
-            service_index = service[1]
-            service_props = component_mapping[service_name]
-            service_data = create_service_data(
-                node_name=node_name,
-                service_name=service_name + '_' + to_valid_variable_name(str(uuid.uuid4())),
-                service_index=service_index,
-                component=service_props
-            )
-            service_group.append(service_data)
+    for node_name, service_name in order:
+        if service_name not in name_to_variable:
+            name_to_variable[service_name] = []
+        service_props = component_mapping[service_name]
+        service_data = create_service_data(
+            node_name=node_name,
+            service_name=service_name + '_' + to_valid_variable_name(str(uuid.uuid4())),
+            component=service_props
+        )
+        name_to_variable[service_name] += [service_data['service_name']]
+        service_group.append(service_data)
     deployment_data.append(service_group)
-    deployed_services.extend(service_group)
 
     return deployment_data
 

@@ -23,4 +23,4 @@ ports:
   required:
     strong:
       - name: "proxy"
-        value: 1
+        value: 2

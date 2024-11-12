@@ -96,9 +96,7 @@ class Optimizer:
         query_url = 'http://localhost:{}/process'.format(self.port)
         spec = self.build_specification(resources, components)
         configuration = requests_post(query_url, data=json.dumps(spec)).json()
-        if 'error' in configuration:
-            print('Configuration not found')
-            exit(1)
+        if 'error' in configuration: exit('Configuration not found')
         for node in configuration['configuration']['locations']:
             configuration['configuration']['locations'][node]["0"] = \
                 {refine_name(key): value

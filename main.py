@@ -2,6 +2,7 @@ import sys
 
 import yaml
 from code_generation.python_code_generation import generate_python_script
+from code_generation.yaml_code_generation import generate_yaml_definition
 from utilities import *
 from optimizer import Optimizer
 import os
@@ -57,13 +58,15 @@ if __name__ == '__main__':
 
     ##code generation##
     order = get_topological_sort(configuration['optimized_bindings'])
+
     if not order:
-        order = {k: [(x, i) for x in configuration['configuration']['locations'][k]['0']
-                            for i in range(configuration['configuration']['locations'][k]['0'][x])
-                    ] for k in configuration['configuration']['locations']}
+        order = [(k, x) for k in configuration['configuration']['locations']
+                        for x in configuration['configuration']['locations'][k]['0']
+                        for _ in range(configuration['configuration']['locations'][k]['0'][x])
+                ]
     if language == 'py':
         generate_python_script(order, components, target_folder)
-    # elif language == 'yaml':
-    #     generate_pulumi_yaml_definition(order, components, target_folder, existing_dep)
+    elif language == 'yaml':
+        generate_yaml_definition(order, components, target_folder)
     else:
         print(f"Unsupported output format: {language}")
