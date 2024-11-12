@@ -11,4 +11,4 @@ k3d-k3s-default-agent-1:
 ---
 existingDependencies:
   name:
-  - abs
+  - proxy

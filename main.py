@@ -37,6 +37,7 @@ if __name__ == '__main__':
     configuration = optimizer.optimize(vms, components)
 
     ###compute resource left
+    existing_dep += [x['provider'] for x in configuration['configuration']['bindings']]
     placement = {x: [(y,configuration['configuration']['locations'][x]['0'][y]) for y in configuration['configuration']['locations'][x]['0']] for x in configuration['configuration']['locations']}
     requirements = {x['metadata']['name']: x['spec']['template']['spec']['containers'][0]['resources']['requests'] for x in components}
     resource_left = update_usage(placement, requirements, vms, kubelet_cpu, kubelet_ram)
