@@ -1,8 +1,8 @@
 name: my-k8s-app
 runtime: yaml
 resources:
-  proxy__85ae16d9_2be2_46d9_a12b_9bed7f21a657:
-    name: proxy__85ae16d9_2be2_46d9_a12b_9bed7f21a657
+  proxy__4a324466_0c3b_4d2c_ab18_57f3bbe9dfc4:
+    name: proxy__4a324466_0c3b_4d2c_ab18_57f3bbe9dfc4
     type: kubernetes:core/v1:Pod
     properties:
       apiVersion: v1
@@ -21,8 +21,8 @@ resources:
               cpu: 450m
               memory: 600M
     options: {}
-  proxy__7a766da0_cd3f_4535_b3f1_5b0958aa1a60:
-    name: proxy__7a766da0_cd3f_4535_b3f1_5b0958aa1a60
+  proxy__3f4a85b1_0807_4f05_9181_343b0e1c31f2:
+    name: proxy__3f4a85b1_0807_4f05_9181_343b0e1c31f2
     type: kubernetes:core/v1:Pod
     properties:
       apiVersion: v1
@@ -41,30 +41,8 @@ resources:
               cpu: 450m
               memory: 600M
     options: {}
-  backend__1706889d_4ed4_4c4c_8044_c16fd27a7ed2:
-    name: backend__1706889d_4ed4_4c4c_8044_c16fd27a7ed2
-    type: kubernetes:core/v1:Pod
-    properties:
-      apiVersion: v1
-      kind: Pod
-      metadata:
-        name: backend
-        labels:
-          app: backend
-      spec:
-        nodeName: k3d-k3s-default-agent-2
-        containers:
-        - name: backend-container
-          image: k8s.gcr.io/pause:2.0
-          resources:
-            requests:
-              cpu: 300m
-              memory: 500M
-    options:
-      dependsOn:
-      - ${proxy__85ae16d9_2be2_46d9_a12b_9bed7f21a657}
-  backend__3151fb04_b740_42cd_b4c9_1f61f587155c:
-    name: backend__3151fb04_b740_42cd_b4c9_1f61f587155c
+  backend_ed8e3c34_cac4_4ee0_bf20_b070a26d44f4:
+    name: backend_ed8e3c34_cac4_4ee0_bf20_b070a26d44f4
     type: kubernetes:core/v1:Pod
     properties:
       apiVersion: v1
@@ -84,9 +62,9 @@ resources:
               memory: 500M
     options:
       dependsOn:
-      - ${proxy__85ae16d9_2be2_46d9_a12b_9bed7f21a657}
-  backend__692a5672_d3fe_4567_adbd_b52423f07b63:
-    name: backend__692a5672_d3fe_4567_adbd_b52423f07b63
+      - ${proxy__4a324466_0c3b_4d2c_ab18_57f3bbe9dfc4}
+  backend__7a758ac4_41e1_4d58_8914_a2cf4b53a82e:
+    name: backend__7a758ac4_41e1_4d58_8914_a2cf4b53a82e
     type: kubernetes:core/v1:Pod
     properties:
       apiVersion: v1
@@ -106,4 +84,26 @@ resources:
               memory: 500M
     options:
       dependsOn:
-      - ${proxy__85ae16d9_2be2_46d9_a12b_9bed7f21a657}
+      - ${proxy__4a324466_0c3b_4d2c_ab18_57f3bbe9dfc4}
+  backend__499db151_fc29_47a5_bfac_5decf3eacbae:
+    name: backend__499db151_fc29_47a5_bfac_5decf3eacbae
+    type: kubernetes:core/v1:Pod
+    properties:
+      apiVersion: v1
+      kind: Pod
+      metadata:
+        name: backend
+        labels:
+          app: backend
+      spec:
+        nodeName: k3d-k3s-default-agent-2
+        containers:
+        - name: backend-container
+          image: k8s.gcr.io/pause:2.0
+          resources:
+            requests:
+              cpu: 300m
+              memory: 500M
+    options:
+      dependsOn:
+      - ${proxy__4a324466_0c3b_4d2c_ab18_57f3bbe9dfc4}

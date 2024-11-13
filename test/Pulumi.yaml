@@ -1,0 +1,112 @@
+name: my-k8s-app
+resources:
+  backend-0-pod:
+    name: backend-0-pod
+    options:
+      dependsOn:
+      - ${proxy-0-pod}
+      - ${proxy-1-pod}
+    properties:
+      apiVersion: v1
+      kind: Pod
+      metadata:
+        labels:
+          app: backend-0
+        name: backend-0
+      spec:
+        containers:
+        - image: k8s.gcr.io/pause:2.0
+          name: backend-container
+          resources:
+            requests:
+              cpu: 300m
+              memory: 500M
+        nodeName: k3d-k3s-default-agent-1
+    type: kubernetes:core/v1:Pod
+  backend-1-pod:
+    name: backend-1-pod
+    options:
+      dependsOn:
+      - ${proxy-0-pod}
+      - ${proxy-1-pod}
+    properties:
+      apiVersion: v1
+      kind: Pod
+      metadata:
+        labels:
+          app: backend-1
+        name: backend-1
+      spec:
+        containers:
+        - image: k8s.gcr.io/pause:2.0
+          name: backend-container
+          resources:
+            requests:
+              cpu: 300m
+              memory: 500M
+        nodeName: k3d-k3s-default-agent-1
+    type: kubernetes:core/v1:Pod
+  backend-2-pod:
+    name: backend-2-pod
+    options:
+      dependsOn:
+      - ${proxy-0-pod}
+      - ${proxy-1-pod}
+    properties:
+      apiVersion: v1
+      kind: Pod
+      metadata:
+        labels:
+          app: backend-2
+        name: backend-2
+      spec:
+        containers:
+        - image: k8s.gcr.io/pause:2.0
+          name: backend-container
+          resources:
+            requests:
+              cpu: 300m
+              memory: 500M
+        nodeName: k3d-k3s-default-agent-1
+    type: kubernetes:core/v1:Pod
+  proxy-0-pod:
+    name: proxy-0-pod
+    options: {}
+    properties:
+      apiVersion: v1
+      kind: Pod
+      metadata:
+        labels:
+          app: proxy-0
+        name: proxy-0
+      spec:
+        containers:
+        - image: k8s.gcr.io/pause:2.0
+          name: proxy-container
+          resources:
+            requests:
+              cpu: 450m
+              memory: 600M
+        nodeName: k3d-k3s-default-agent-0
+    type: kubernetes:core/v1:Pod
+  proxy-1-pod:
+    name: proxy-1-pod
+    options: {}
+    properties:
+      apiVersion: v1
+      kind: Pod
+      metadata:
+        labels:
+          app: proxy-1
+        name: proxy-1
+      spec:
+        containers:
+        - image: k8s.gcr.io/pause:2.0
+          name: proxy-container
+          resources:
+            requests:
+              cpu: 450m
+              memory: 600M
+        nodeName: k3d-k3s-default-agent-0
+    type: kubernetes:core/v1:Pod
+runtime: yaml
