@@ -1,7 +1,7 @@
 from jinja2 import Environment, FileSystemLoader
 import uuid
 import os
-from code_generation.utilities import to_valid_variable_name
+from code_generation.utilities import to_valid_variable_name, to_dns_name
 
 
 def prepare_deployment_data(order, components):
@@ -17,24 +17,26 @@ def prepare_deployment_data(order, components):
             "node_name": node_name,
             "service_name": service_name,
             "service_label": component['spec']['selector']['matchLabels'],
-            "variable_name": f"{service_name}",
+            "variable_name": to_valid_variable_name(service_name),
             "image": component['spec']['template']['spec']['containers'][0]['image'],
+            "image_name": to_dns_name(component['spec']['template']['spec']['containers'][0]['image']),
             "cpu": component['spec']['template']['spec']['containers'][0]['resources']['requests']['cpu'],
             "memory": component['spec']['template']['spec']['containers'][0]['resources']['requests']['memory'],
             "depends_on": [{"service_name": name_to_variable[k][:mapped[k]]} for k in mapped]
         }
     service_group = []
     for node_name, service_name in order:
+        uuid_var = str(uuid.uuid4())
+        gen_service_name = f"{service_name}-{uuid_var}"
         if service_name not in name_to_variable:
             name_to_variable[service_name] = []
         service_props = component_mapping[service_name]
-        variable_name = service_name + '_' + to_valid_variable_name(str(uuid.uuid4()))
         service_data = create_service_data(
             node_name=node_name,
-            service_name=variable_name,
+            service_name=gen_service_name,
             component=service_props
         )
-        name_to_variable[service_name] += [variable_name]
+        name_to_variable[service_name] += [to_valid_variable_name(gen_service_name)]
         service_group.append(service_data)
     deployment_data.append(service_group)
 

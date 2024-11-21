@@ -5,7 +5,7 @@ from enum import Enum
 import tempfile
 
 Op = Enum("Op", [("DEPLOY", "deploy"), ("DESTROY", "destroy")])
-def execute_python(file_path: str, operation: str):
+def execute_python(file_path: str, stack_name: str, operation: str):
     converted_path = Path(file_path)
     ensure_path(converted_path)
     check_file_extension(converted_path, ".py")
@@ -13,44 +13,48 @@ def execute_python(file_path: str, operation: str):
 
     try:
         if operation == Op.DEPLOY.value:
-            subprocess.run(["python", str(file_path)], check=True)
+            subprocess.run(["python", file_path, stack_name], check=True)
         elif operation == Op.DESTROY.value:
-            subprocess.run(["python", str(file_path), "destroy"], check=True)
+            subprocess.run(["python", file_path, stack_name, "destroy"], check=True)
+
     except subprocess.CalledProcessError as e:
         print(f"Execution failed: {e}")
 
-def execute_yaml(file_path: str, operation: str):
+def execute_yaml(file_path: str, stack_name:str, operation: str, project_path: str):
     converted_file_path = Path(file_path)
+    converted_project_path = Path(project_path)
     ensure_path(converted_file_path)
     check_file_extension(converted_file_path, ".yaml")
     ensure_operation_exists(operation)
 
     try:
-        with tempfile.TemporaryDirectory() as temp_dir:
-            temp_dir_path = Path(temp_dir)
+        destination = converted_project_path / "Pulumi.yaml"
+        shutil.copy(converted_file_path, destination)
 
+        command = "up" if operation == Op.DEPLOY.value else "destroy"
 
-            subprocess.run(["pulumi", "new", "yaml", "-y"], cwd=temp_dir_path, check=True)
-            default_stack_name = "dev"
+        out_select_stack = subprocess.run(
+            ["pulumi", "stack", "select", "--non-interactive", "-c", stack_name],
+            cwd=converted_project_path,
+            check=True
+        )
 
-            destination = temp_dir_path / "Pulumi.yaml"
-            shutil.copy(converted_file_path, destination)
+        print(out_select_stack)
 
-            command = "up" if operation == Op.DEPLOY.value else "destroy"
+        out_up_command = subprocess.run(
+            ["pulumi", command, "-f", "-y", "--non-interactive", "--stack", stack_name],
+            cwd=converted_project_path,
+            capture_output=True,
+            text=True,
+        )
 
-            out = subprocess.run(
-                ["pulumi", command, "-f", "-y", "--stack", default_stack_name],
-                cwd=temp_dir_path,
-                capture_output=True,
-                text=True,
-                check=True,
-            )
+        print(out_up_command.stdout)
 
     except subprocess.CalledProcessError as e:
         print(f"Pulumi command failed: {e}")
         print("Error output:", e.stderr)
 
-def execute(file_path: str, operation: str):
+def execute(file_path: str, stack_name:str, operation: str, project_path: str):
     """
     Executes the appropriate function (execute_python or execute_yaml)
     based on the file extension of the provided file_path.
@@ -58,9 +62,9 @@ def execute(file_path: str, operation: str):
     file_extension = Path(file_path).suffix
 
     if file_extension == ".py":
-        execute_python(file_path, operation)
+        execute_python(file_path, stack_name, operation)
     elif file_extension == ".yaml":
-        execute_yaml(file_path, operation)
+        execute_yaml(file_path, stack_name, operation, project_path)
     else:
         raise ValueError(f"Unsupported file type: {file_extension}. Supported types are .py and .yaml.")
 

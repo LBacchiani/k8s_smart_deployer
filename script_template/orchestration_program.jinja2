@@ -2,23 +2,40 @@ import pulumi
 import pulumi_kubernetes as k8s
 import os
 from pulumi import automation as auto
+import uuid
+
+def create_pod_name(service_name, stack_name):
+    """Generate a unique pod name based on service and stack"""
+    return f"{service_name}-{stack_name}-{str(uuid.uuid4())[:8]}"
 
 def pulumi_program():
+    stack = pulumi.get_stack()
+
     {% for service_group in deployment_data %}
         {% for service in service_group %}
-    {{ service['variable_name'] }} = k8s.core.v1.Pod('{{ service['variable_name'] }}',
+    {{ service['variable_name'] }}_name = create_pod_name('{{ service["service_name"] }}', stack)
+
+    {{ service['variable_name'] }} = k8s.core.v1.Pod({{ service['variable_name'] }}_name,
         metadata=k8s.meta.v1.ObjectMetaArgs(
             {% if service['service_label'] %}
-                name = '{{ service['service_name'] }}',
-                labels = {{ service['service_label'] }}
+                name = {{ service['variable_name'] }}_name,
+                labels = {
+                    **{{ service['service_label'] }},
+                    'stack': stack,
+                    'original_service': '{{ service["service_name"] }}'
+                }
             {% else %}
-                name = '{{ service['service_name'] }}'
+                name = {{ service['variable_name'] }}_name,
+                labels = {
+                    'stack': stack,
+                    'original_service': '{{ service["service_name"] }}'
+                }
             {% endif %}
         ),
         spec=k8s.core.v1.PodSpecArgs(
             containers = [
                 k8s.core.v1.ContainerArgs(
-                    name = '{{ service['service_name'] }}-container',
+                    name = '{{ service['image_name'] }}',
                     image = '{{ service['image'] }}',
                     resources=k8s.core.v1.ResourceRequirementsArgs(
                         requests= {
@@ -33,7 +50,9 @@ def pulumi_program():
         {% if service['depends_on'] %}
         ,opts=pulumi.ResourceOptions(depends_on=[
             {% for dep in service['depends_on'] %}
-                {{ dep['service_name'] }},
+                {% for name in dep['service_name'] %}
+                    {{ name }},
+                {% endfor %}
             {% endfor %}
         ])
         {% endif %}
@@ -44,18 +63,18 @@ def pulumi_program():
     # Export pod names
     {% for service_group in deployment_data %}
         {% for service in service_group %}
-    pulumi.export('{{ service['service_name'] }}_name', {{ service['service_name'] }}.metadata['name'])
+    pulumi.export('{{ service["service_name"] }}_name', {{ service['variable_name'] }}.metadata['name'])
         {% endfor %}
     {% endfor %}
 
-def deploy_orchestration():
+def deploy_orchestration(stack_name):
     stack = auto.create_or_select_stack(
-        stack_name='{{ increase_name }}',
+        stack_name=stack_name,
         project_name='{{ project_name }}',
         program=pulumi_program
     )
 
-    print('Successfully initialized stack')
+    print(f'Successfully initialized stack: {stack_name}')
 
     kubeconfig_path = os.getenv('KUBECONFIG', '~/.kube/config')
     print(f"Using kubeconfig: {kubeconfig_path}")
@@ -69,26 +88,33 @@ def deploy_orchestration():
     print('Deploying changes...')
     up_res = stack.up(on_output=print)
 
+    print(f"\nPods created in stack '{stack_name}':")
     {% for service_group in deployment_data %}
         {% for service in service_group %}
     print(f"Pod {{ service['service_name'] }} Name: {up_res.outputs['{{ service['service_name'] }}_name'].value}")
         {% endfor %}
     {% endfor %}
 
-def destroy_pods():
+def destroy_pods(stack_name):
     stack = auto.create_or_select_stack(
-        stack_name='{{ increase_name }}',
+        stack_name=stack_name,
         project_name='{{ project_name }}',
         program=lambda: None
     )
 
-    print('Destroying resources...')
+    print(f'Destroying resources in stack: {stack_name}...')
     stack.destroy(on_output=print)
     print('Resources successfully destroyed.')
 
 if __name__ == '__main__':
     import sys
-    if len(sys.argv) > 1 and sys.argv[1] == 'destroy':
-       destroy_pods()
+    if len(sys.argv) < 2:
+        print("Usage: python script.py stack_name [destroy]")
+        sys.exit(1)
+
+    stack_name = sys.argv[1]
+
+    if len(sys.argv) > 2 and sys.argv[2] == 'destroy':
+        destroy_pods(stack_name)
     else:
-        deploy_orchestration()
+        deploy_orchestration(stack_name)

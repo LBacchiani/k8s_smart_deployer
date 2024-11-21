@@ -1,13 +1,28 @@
 import os
 import uuid
 import yaml
-from code_generation.utilities import to_valid_variable_name
+from itertools import groupby
+from operator import itemgetter
+from code_generation.utilities import to_dns_name
 
 
 class NoAliasDumper(yaml.SafeDumper):
     def ignore_aliases(self, data):
         return True
 
+
+def enumerate_service_groups(input_list):
+    service_groups = {}
+    result = []
+
+    for host, service in input_list:
+        if service not in service_groups:
+            service_groups[service] = 0
+
+        result.append((host, service_groups[service], service))
+        service_groups[service] += 1
+
+    return result
 
 
 def add_pod_definitions(order, components):
@@ -16,9 +31,11 @@ def add_pod_definitions(order, components):
     mapped = []
     name_to_variable = {}
 
-    for node_name, service_name in order:
+    indexed_services = enumerate_service_groups(order)
+
+    for node_name, service_idx, service_name in indexed_services:
         container = component_mapping[service_name]['spec']['template']['spec']['containers']
-        variable_name = service_name + '_' + to_valid_variable_name(str(uuid.uuid4()))
+        variable_name = service_name + '-' + to_dns_name(str(uuid.uuid4()))
         if service_name not in name_to_variable:
             name_to_variable[service_name] = []
         if 'ports' in component_mapping[service_name]:
@@ -26,19 +43,19 @@ def add_pod_definitions(order, components):
         pod_definitions.append({
             'name': variable_name,
             'type': 'kubernetes:core/v1:Pod',
-            'properties': create_pod_definition(service_name, container, node_name),
+            'properties': create_pod_definition(service_name, service_idx, container, node_name),
             'options': {"dependsOn": [f"${{{name_to_variable[k][i]}}}" for k in mapped for i in range(mapped[k])]} if mapped else {}
         })
         name_to_variable[service_name] += [variable_name]
     return pod_definitions
 
 
-def create_pod_definition(component, containers, node_name):
+def create_pod_definition(component, service_idx, containers, node_name):
     return {
         'apiVersion': 'v1',
         'kind': 'Pod',
         'metadata': {
-            'name': component,
+            'name': component+ "-" + str(service_idx) + "-${pulumi.stack}",
             'labels': {'app': component}
         },
         'spec': {

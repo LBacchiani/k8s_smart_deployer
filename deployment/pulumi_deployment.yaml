@@ -1,14 +1,14 @@
 name: my-k8s-app
 runtime: yaml
 resources:
-  proxy__4a324466_0c3b_4d2c_ab18_57f3bbe9dfc4:
-    name: proxy__4a324466_0c3b_4d2c_ab18_57f3bbe9dfc4
+  proxy-353fbc51-9520-4482-a5ae-47a4e0322fab:
+    name: proxy-353fbc51-9520-4482-a5ae-47a4e0322fab
     type: kubernetes:core/v1:Pod
     properties:
       apiVersion: v1
       kind: Pod
       metadata:
-        name: proxy
+        name: proxy-0-${pulumi.stack}
         labels:
           app: proxy
       spec:
@@ -21,14 +21,14 @@ resources:
               cpu: 450m
               memory: 600M
     options: {}
-  proxy__3f4a85b1_0807_4f05_9181_343b0e1c31f2:
-    name: proxy__3f4a85b1_0807_4f05_9181_343b0e1c31f2
+  proxy-6d952b64-7cc9-46f3-94c4-10cead540ba3:
+    name: proxy-6d952b64-7cc9-46f3-94c4-10cead540ba3
     type: kubernetes:core/v1:Pod
     properties:
       apiVersion: v1
       kind: Pod
       metadata:
-        name: proxy
+        name: proxy-1-${pulumi.stack}
         labels:
           app: proxy
       spec:
@@ -41,14 +41,36 @@ resources:
               cpu: 450m
               memory: 600M
     options: {}
-  backend_ed8e3c34_cac4_4ee0_bf20_b070a26d44f4:
-    name: backend_ed8e3c34_cac4_4ee0_bf20_b070a26d44f4
+  backend-ad668b1d-04da-4df1-861b-d78470887b77:
+    name: backend-ad668b1d-04da-4df1-861b-d78470887b77
     type: kubernetes:core/v1:Pod
     properties:
       apiVersion: v1
       kind: Pod
       metadata:
-        name: backend
+        name: backend-0-${pulumi.stack}
+        labels:
+          app: backend
+      spec:
+        nodeName: k3d-k3s-default-agent-2
+        containers:
+        - name: backend-container
+          image: k8s.gcr.io/pause:2.0
+          resources:
+            requests:
+              cpu: 300m
+              memory: 500M
+    options:
+      dependsOn:
+      - ${proxy-353fbc51-9520-4482-a5ae-47a4e0322fab}
+  backend-92f13ea0-d840-4eb5-b660-5c6b91ff5d51:
+    name: backend-92f13ea0-d840-4eb5-b660-5c6b91ff5d51
+    type: kubernetes:core/v1:Pod
+    properties:
+      apiVersion: v1
+      kind: Pod
+      metadata:
+        name: backend-1-${pulumi.stack}
         labels:
           app: backend
       spec:
@@ -62,15 +84,15 @@ resources:
               memory: 500M
     options:
       dependsOn:
-      - ${proxy__4a324466_0c3b_4d2c_ab18_57f3bbe9dfc4}
-  backend__7a758ac4_41e1_4d58_8914_a2cf4b53a82e:
-    name: backend__7a758ac4_41e1_4d58_8914_a2cf4b53a82e
+      - ${proxy-353fbc51-9520-4482-a5ae-47a4e0322fab}
+  backend-ca45990f-37b2-43c8-8104-4c6b6fc2ac50:
+    name: backend-ca45990f-37b2-43c8-8104-4c6b6fc2ac50
     type: kubernetes:core/v1:Pod
     properties:
       apiVersion: v1
       kind: Pod
       metadata:
-        name: backend
+        name: backend-2-${pulumi.stack}
         labels:
           app: backend
       spec:
@@ -84,26 +106,4 @@ resources:
               memory: 500M
     options:
       dependsOn:
-      - ${proxy__4a324466_0c3b_4d2c_ab18_57f3bbe9dfc4}
-  backend__499db151_fc29_47a5_bfac_5decf3eacbae:
-    name: backend__499db151_fc29_47a5_bfac_5decf3eacbae
-    type: kubernetes:core/v1:Pod
-    properties:
-      apiVersion: v1
-      kind: Pod
-      metadata:
-        name: backend
-        labels:
-          app: backend
-      spec:
-        nodeName: k3d-k3s-default-agent-2
-        containers:
-        - name: backend-container
-          image: k8s.gcr.io/pause:2.0
-          resources:
-            requests:
-              cpu: 300m
-              memory: 500M
-    options:
-      dependsOn:
-      - ${proxy__4a324466_0c3b_4d2c_ab18_57f3bbe9dfc4}
+      - ${proxy-353fbc51-9520-4482-a5ae-47a4e0322fab}
