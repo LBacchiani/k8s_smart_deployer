@@ -1,8 +1,6 @@
 import os
 import uuid
 import yaml
-from itertools import groupby
-from operator import itemgetter
 from code_generation.utilities import to_dns_name
 
 
