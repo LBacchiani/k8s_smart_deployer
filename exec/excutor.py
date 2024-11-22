@@ -48,7 +48,7 @@ def execute_yaml(file_path: str, stack_name:str, operation: str, project_path: s
             text=True,
         )
 
-        print(out_up_command.stdout)
+        print(out_up_command)
 
     except subprocess.CalledProcessError as e:
         print(f"Pulumi command failed: {e}")

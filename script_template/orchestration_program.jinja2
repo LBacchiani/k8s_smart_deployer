@@ -6,7 +6,7 @@ import uuid
 
 def create_pod_name(service_name, stack_name):
     """Generate a unique pod name based on service and stack"""
-    return f"{service_name}-{stack_name}-{str(uuid.uuid4())[:8]}"
+    return f"{service_name}-{stack_name}"
 
 def pulumi_program():
     stack = pulumi.get_stack()
