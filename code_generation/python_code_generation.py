@@ -16,12 +16,12 @@ def prepare_deployment_data(order, components):
         return {
             "node_name": node_name,
             "service_name": service_name,
-            "service_label": component['spec']['selector']['matchLabels'],
+            "service_label": component['metadata']['labels'],
             "variable_name": to_valid_variable_name(service_name),
-            "image": component['spec']['template']['spec']['containers'][0]['image'],
-            "image_name": to_dns_name(component['spec']['template']['spec']['containers'][0]['image']),
-            "cpu": component['spec']['template']['spec']['containers'][0]['resources']['requests']['cpu'],
-            "memory": component['spec']['template']['spec']['containers'][0]['resources']['requests']['memory'],
+            "image": component['spec']['containers'][0]['image'],
+            "image_name": to_dns_name(component['spec']['containers'][0]['image']),
+            "cpu": component['spec']['containers'][0]['resources']['requests']['cpu'],
+            "memory": component['spec']['containers'][0]['resources']['requests']['memory'],
             "depends_on": [{"service_name": name_to_variable[k][:mapped[k]]} for k in mapped]
         }
     service_group = []

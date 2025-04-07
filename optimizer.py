@@ -4,9 +4,7 @@ from requests import post as requests_post
 from utilities import *
 
 class Optimizer:
-    def __init__(self, kubelet_cpu, kubelet_ram, port, options=None):
-        self.reserved_kublet_cpu = kubelet_cpu
-        self.reserved_kublet_ram = kubelet_ram
+    def __init__(self, port, options=None):
         self.port = port
         self.options = [x.strip() for x in options.split(',')] if options else None
 
@@ -15,7 +13,7 @@ class Optimizer:
         total_cpu = 0
         total_ram = 0
         to_return = {'resources': {}, 'provides': [{}], 'requires': {}}
-        for container in component['spec']['template']['spec']['containers']:
+        for container in component['spec']['containers']:
             try:
                 total_cpu += cpu_convertion(container['resources']['requests']['cpu'])
                 total_ram += ram_convertion(container['resources']['requests']['memory'])
@@ -34,18 +32,20 @@ class Optimizer:
     def match_by_app(self, components, values):
         match = []
         for component in components:
-            if component['spec']['selector']['matchLabels']['app'] in values:
+            if component['metadata']['labels']['app'] in values:
                 match.append(refine_name(component['metadata']['name']))
         return match
 
     def in_operator(self, component, matches, kind):
         affinities = []
         pod_nickname = refine_name(component['metadata']['name'])
-        if kind == 'podAffinity':
+        if kind == 'affinity':
             for match in matches:
-                affinities.append('(forall ?x in locations: (?x.{} > 0 impl ?x.{} > 0))'
-                                  .format(pod_nickname, match))
-        elif kind == 'podAntiAffinity':
+                if pod_nickname != match:
+                    affinities.append('(forall ?x in locations: (?x.{} > 0 impl ?x.{} > 0))'.format(pod_nickname, match))
+                else:
+                    affinities.append('(forall ?x in locations: (?x.{} > 0 impl ?x.{} > 1))'.format(pod_nickname, match))
+        elif kind == 'antiAffinity':
             if pod_nickname in matches:
                 affinities.append('(forall ?x in locations: (?x.{} <= 1))'
                                   .format(pod_nickname))
@@ -57,44 +57,45 @@ class Optimizer:
             raise Exception('Affinity not supported')
         return affinities
 
-    def pod_affinity(self, component, components):
+    def pod_affinity(self, component, components, preferences):
         affinities = []
-        for x in component['spec']['template']['spec']['affinity']:
-            for selector in component['spec']['template']['spec']['affinity'][x]['requiredDuringSchedulingIgnoredDuringExecution']:
-                if selector['topologyKey'] == 'kubernetes.io/hostname':
-                    for expression in selector['labelSelector']['matchExpressions']:
-                        if expression['key'] == 'app':
-                            matches = self.match_by_app(components,  expression['values'])
-                        else:
-                            raise Exception('Key not supported')
-                        if expression['operator'] == 'In':
-                            affinities += self.in_operator(component, matches, x)
-                        else:
-                            raise Exception('Operator not supported')
-                else:
-                    raise Exception('Missing topology key: kubernetes.io/hostname')
+        for x in preferences:
+            for pref in x:
+                for expression in x[pref]:
+                    if expression['key'] == 'app':
+                        matches = self.match_by_app(components,  expression['values'])
+                    else:
+                        raise Exception('Key not supported')
+                    if expression['operator'] == 'In':
+                        affinities += self.in_operator(component, matches, pref)
+                    else:
+                        raise Exception('Operator not supported')
         return ' and '.join(affinities)
 
-    def build_specification(self, vm_properties, components):
+    def build_specification(self, vm_properties, components, target):
         spec = {}
-        spec['locations'] = compute_resources(vm_properties, self.reserved_kublet_cpu, self.reserved_kublet_ram)
+        spec['locations'] = convert_resources(vm_properties)
         spec['components'] = {}
-        if self.options: spec['options'] = self.options
+        if self.options: 
+            spec['options'] = self.options
         spec['specification'] = ''
         for component in components:
             pod_name = refine_name(component['metadata']['name'])
             spec['components'][pod_name] = self.pod_requirements(component)
             if spec['specification']: spec['specification'] += ' and '
-            spec['specification'] += '{} > {}'.format(pod_name, component['spec']['replicas'] - 1)
-            if 'affinity' in component['spec']['template']['spec']:
-                affinities = self.pod_affinity(component, components)
+            value = 0
+            if component['metadata']['name'] in target['service_instances']: 
+                value = target['service_instances'][component['metadata']['name']]['replicas']
+            spec['specification'] += '{} >= {}'.format(pod_name, value)
+            if 'deployment_preferences' in target and component['metadata']['name'] in target['deployment_preferences']:
+                affinities = self.pod_affinity(component, components, target['deployment_preferences'][component['metadata']['name']])
                 if affinities: spec['specification'] += ' and {}'.format(affinities)
         spec['specification'] += '; cost; (sum ?y in components: ?y)'
         return spec
 
-    def optimize(self, resources, components):
+    def optimize(self, resources, components, target):
         query_url = 'http://localhost:{}/process'.format(self.port)
-        spec = self.build_specification(resources, components)
+        spec = self.build_specification(resources, components, target)
         configuration = requests_post(query_url, data=json.dumps(spec)).json()
         if 'error' in configuration: exit('Configuration not found')
         for node in configuration['configuration']['locations']:

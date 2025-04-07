@@ -1,0 +1,19 @@
+service_instances:
+  backend:
+    replicas: 1
+existingDependencies:
+  - name: "proxy"
+    value: 1
+deployment_preferences:
+  backend:
+    - affinity:
+      - key: app
+        operator: In
+        values:
+        -  backend
+    - antiAffinity:
+      - key: app
+        operator: In
+        values:
+          -  proxy      
+

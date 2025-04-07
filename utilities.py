@@ -33,6 +33,33 @@ def ram_convertion(ram):
     if unit == 'Ei': return int(int(val) * 1.153e+12) # Exbibyte
     raise Exception('Unrecognized RAM measurement: \'{}\''.format(ram))
 
+def scale_storage(val):
+    if isinstance(val, int) and val >= 0:  # Ensure input is a non-negative integer.
+        units = ['M', 'Mi', 'K', 'Ki', 'B', 'G', 'Gi', 'T', 'Ti', 'P', 'Pi', 'E', 'Ei']
+        conversions = {
+            'M': 1, 
+            'Mi': 1.049, 
+            'K': 1000, 
+            'Ki': 976.562, 
+            'B': 1e+6, 
+            'G': 1000, 
+            'Gi': 1073.742, 
+            'T': 1e+6, 
+            'Ti': 1.1e+6, 
+            'P': 1e+9, 
+            'Pi': 1.126e+9, 
+            'E': 1e+12, 
+            'Ei': 1.153e+12
+        }
+        
+        for unit in units:
+            scaled_value = val / conversions[unit]
+            # Formatting output with one decimal point for clarity
+            return f"{int(scaled_value)}{unit}"
+
+    else:
+        raise ValueError("Input should be a non-negative integer")
+
 
 def refine_name(name):
     '''Zephyrus2 gives dash symbols in names meaning so a workaround like this is needed.'''
@@ -40,17 +67,17 @@ def refine_name(name):
     else: return name.replace('-', '_')
 
 
-def compute_resources(vm_properties, occupied_cpu, occupied_ram):
+def convert_resources(vm_properties):
     nodes = {}
     for x in vm_properties.keys():
-        cpu = cpu_convertion(vm_properties[x]['resources']['cpu']) - cpu_convertion(occupied_cpu)
-        ram = ram_convertion(vm_properties[x]['resources']['memory']) - ram_convertion(occupied_ram)
-        nodes[x] = {'num': 1, 'resources': {'memory': ram, 'cpu': cpu}} #TODO add "cost"
+        cpu = cpu_convertion(vm_properties[x]['resources']['cpu'])
+        ram = ram_convertion(vm_properties[x]['resources']['memory'])
+        nodes[x] = {'resources': {'memory': ram, 'cpu': cpu}} #TODO add "cost"
     return nodes
 
 
-def update_usage(placement, requirements, resources, kubelet_cpu, kubelet_ram):
-    resources_left = compute_resources(resources, kubelet_cpu, kubelet_ram)
+def update_usage(placement, requirements, resources):
+    resources_left = convert_resources(resources)
     for node in placement:
         for (s,n) in placement[node]:
             cpu = cpu_convertion(requirements[s]['cpu']) * n
@@ -58,8 +85,8 @@ def update_usage(placement, requirements, resources, kubelet_cpu, kubelet_ram):
             resources_left[node]['resources']['cpu'] -= cpu
             resources_left[node]['resources']['memory'] -= mem
     for r in resources_left:
-        resources_left[r]['resources']['cpu'] = str(resources_left[r]['resources']['cpu'])
-        resources_left[r]['resources']['memory'] =  str(resources_left[r]['resources']['memory'] * int(1e+6)) #convert in byte
+        resources_left[r]['resources']['cpu'] = str(resources_left[r]['resources']['cpu']) + 'm'
+        resources_left[r]['resources']['memory'] =  scale_storage(resources_left[r]['resources']['memory']) 
     return resources_left
 
 
