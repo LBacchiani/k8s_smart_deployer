@@ -11,15 +11,18 @@ where ```<PORT>``` is a user-defined port
 
 To run the tool open a terminal in the root folder and execute 
 ```
-python main.py ARG1 ARG2 ARG3
+python main.py ARG1 ARG2 ARG3 ARG4 ARG5 ARG6
 ```
 where
 
 ```
-ARG1 is the path to the declarative specifications of services and resources
-ARG2 is the value of the <PORT> specified after launching the zephyrus2 container
-ARG3 is the orchestration language
+ARG1 is the path to the declarative specifications
+ARG2 is the folder where microservices spefications are
+ARG3 is the yaml file containing the target configuration requirements
+ARG4 is the yaml file containing virtual machines requirements
+ARG5 is the value of the <PORT> specified after launching the zephyrus2 container
+ARG6 is the orchestration language
 ```
 
 Currently, we only support ```YAML``` and ```Python``` as orchestration languages. To choose among them, 
-use ```yaml``` and ```py```
+use ```yaml``` and ```python```
