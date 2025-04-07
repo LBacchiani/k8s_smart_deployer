@@ -13,42 +13,37 @@ def pulumi_program():
 
     {% for service_group in deployment_data %}
         {% for service in service_group %}
+    {% if service['kind'] == 'Pod' %}
     {{ service['variable_name'] }}_name = create_pod_name('{{ service["service_name"] }}', stack)
 
     {{ service['variable_name'] }} = k8s.core.v1.Pod({{ service['variable_name'] }}_name,
         metadata=k8s.meta.v1.ObjectMetaArgs(
-            {% if service['service_label'] %}
-                name = {{ service['variable_name'] }}_name,
-                labels = {
-                    **{{ service['service_label'] }},
-                    'stack': stack,
-                    'original_service': '{{ service["service_name"] }}'
-                }
-            {% else %}
-                name = {{ service['variable_name'] }}_name,
-                labels = {
-                    'stack': stack,
-                    'original_service': '{{ service["service_name"] }}'
-                }
-            {% endif %}
+            name={{ service['variable_name'] }}_name,
+            labels={
+                {% if service.get('service_label') %}
+                **{{ service['service_label'] }},
+                {% endif %}
+                'stack': stack,
+                'original_service': '{{ service["service_name"] }}'
+            }
         ),
         spec=k8s.core.v1.PodSpecArgs(
-            containers = [
+            containers=[
                 k8s.core.v1.ContainerArgs(
-                    name = '{{ service['image_name'] }}',
-                    image = '{{ service['image'] }}',
+                    name='{{ service["image_name"] }}',
+                    image='{{ service["image"] }}',
                     resources=k8s.core.v1.ResourceRequirementsArgs(
-                        requests= {
-                            'cpu': '{{ service['cpu'] }}',
-                            'memory': '{{ service['memory'] }}'
+                        requests={
+                            'cpu': '{{ service["cpu"] }}',
+                            'memory': '{{ service["memory"] }}'
                         }
                     )
                 )
             ],
-            node_name = '{{ service['node_name'] }}'
-        )
+            node_name='{{ service["node_name"] }}'
+        ),
         {% if service['depends_on'] %}
-        ,opts=pulumi.ResourceOptions(depends_on=[
+        opts=pulumi.ResourceOptions(depends_on=[
             {% for dep in service['depends_on'] %}
                 {% for name in dep['service_name'] %}
                     {{ name }},
@@ -57,10 +52,40 @@ def pulumi_program():
         ])
         {% endif %}
     )
+    {% elif service['kind'] == 'Service' %}
+    {{ service['variable_name'] }} = k8s.core.v1.Service('{{ service["service_name"] }}',
+        metadata=k8s.meta.v1.ObjectMetaArgs(
+            name='{{ service["service_name"] }}',
+            labels={
+                'stack': stack
+            }
+        ),
+        spec=k8s.core.v1.ServiceSpecArgs(
+            type='{{ service["type"] }}',
+            selector={{ service["selector"] }},
+            ports=[
+                k8s.core.v1.ServicePortArgs(
+                    port={{ service["ports"][0]["port"] }},
+                    target_port={{ service["ports"][0]["targetPort"] }},
+                    node_port={{ service["ports"][0]["nodePort"] }}
+                )
+            ]
+        ),
+        {% if service['depends_on'] %}
+        opts=pulumi.ResourceOptions(depends_on=[
+            {% for dep in service['depends_on'] %}
+                {% for name in dep['service_name'] %}
+                    {{ name }},
+                {% endfor %}
+            {% endfor %}
+        ])
+        {% endif %}
+    )
+    {% endif %}
         {% endfor %}
     {% endfor %}
 
-    # Export pod names
+    # Export all resource names
     {% for service_group in deployment_data %}
         {% for service in service_group %}
     pulumi.export('{{ service["service_name"] }}_name', {{ service['variable_name'] }}.metadata['name'])
@@ -88,10 +113,10 @@ def deploy_orchestration(stack_name):
     print('Deploying changes...')
     up_res = stack.up(on_output=print)
 
-    print(f"\nPods created in stack '{stack_name}':")
+    print(f"\nResources created in stack '{stack_name}':")
     {% for service_group in deployment_data %}
         {% for service in service_group %}
-    print(f"Pod {{ service['service_name'] }} Name: {up_res.outputs['{{ service['service_name'] }}_name'].value}")
+    print(f"{{ service['kind'] }} {{ service['service_name'] }} Name: {up_res.outputs['{{ service['service_name'] }}_name'].value}")
         {% endfor %}
     {% endfor %}
 

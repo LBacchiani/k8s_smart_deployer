@@ -1,0 +1,4 @@
+service_instances:
+  backend-service:
+    replicas: 1
+

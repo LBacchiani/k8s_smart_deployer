@@ -8,18 +8,19 @@ class Optimizer:
         self.port = port
         self.options = [x.strip() for x in options.split(',')] if options else None
 
-    def pod_requirements(self, component):
+    def requirements(self, component):
         '''Sums up the resource requirements of containers in a pod.'''
         total_cpu = 0
         total_ram = 0
         to_return = {'resources': {}, 'provides': [{}], 'requires': {}}
-        for container in component['spec']['containers']:
-            try:
-                total_cpu += cpu_convertion(container['resources']['requests']['cpu'])
-                total_ram += ram_convertion(container['resources']['requests']['memory'])
-            except KeyError as e:
-                raise Exception('Resource request for {}\'s {} container lacks {} key.'
-                                .format(component['metadata']['name'], container['name'], e))
+        if component['kind'] == 'Pod':
+            for container in component['spec']['containers']:
+                try:
+                    total_cpu += cpu_convertion(container['resources']['requests']['cpu'])
+                    total_ram += ram_convertion(container['resources']['requests']['memory'])
+                except KeyError as e:
+                    raise Exception('Resource request for {}\'s {} container lacks {} key.'
+                                    .format(component['metadata']['name'], container['name'], e))
         to_return['resources'] = {'memory': total_ram, 'cpu': total_cpu}
         if 'ports' in component:
             required = {}
@@ -32,7 +33,7 @@ class Optimizer:
     def match_by_app(self, components, values):
         match = []
         for component in components:
-            if component['metadata']['labels']['app'] in values:
+            if component['kind'] == 'Pod' and component['metadata']['labels']['app'] in values:
                 match.append(refine_name(component['metadata']['name']))
         return match
 
@@ -81,7 +82,7 @@ class Optimizer:
         spec['specification'] = ''
         for component in components:
             pod_name = refine_name(component['metadata']['name'])
-            spec['components'][pod_name] = self.pod_requirements(component)
+            spec['components'][pod_name] = self.requirements(component)
             if spec['specification']: spec['specification'] += ' and '
             value = 0
             if component['metadata']['name'] in target['service_instances']: 

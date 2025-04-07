@@ -62,7 +62,8 @@ if __name__ == '__main__':
 
     ###compute resource left
     placement = {x: [(y, configuration['configuration']['locations'][x]['0'][y]) for y in configuration['configuration']['locations'][x]['0']] for x in configuration['configuration']['locations']}
-    requirements = {x['metadata']['name']: x['spec']['containers'][0]['resources']['requests'] for x in components}
+    requirements = {refine_name(x['metadata']['name']): x['spec']['containers'][0]['resources']['requests'] if x['kind'] == 'Pod' else {'cpu': '0m', 'memory': '0M'} for x in components}
+
     resource_left = update_usage(placement, requirements, vms)
     os.makedirs(target_folder, exist_ok=True)
     with open(f"{target_folder}/vm_annotations.yaml", "w") as file:

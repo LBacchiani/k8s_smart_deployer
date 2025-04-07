@@ -34,19 +34,30 @@ def add_pod_definitions(order, components):
     indexed_services = enumerate_service_groups(order)
 
     for node_name, service_idx, service_name in indexed_services:
-        container = component_mapping[service_name]['spec']['containers']
-        variable_name = service_name + '-' + to_dns_name(str(uuid.uuid4()))
-        if service_name not in name_to_variable:
-            name_to_variable[service_name] = []
-        if 'ports' in component_mapping[service_name]:
-            mapped = dict(map(lambda x: x.values(), component_mapping[service_name]['ports']['required']['strong']))
-        pod_definitions.append({
-            'name': variable_name,
-            'type': 'kubernetes:core/v1:Pod',
-            'properties': create_pod_definition(service_name, service_idx, container, node_name),
-            'options': {"dependsOn": [f"${{{name_to_variable[k][i]}}}" for k in mapped for i in range(mapped[k])]} if mapped else {}
-        })
-        name_to_variable[service_name] += [variable_name]
+        fixed_name = service_name.replace('_','-')
+        if component_mapping[fixed_name]['kind'] == 'Pod':
+            container = component_mapping[fixed_name]['spec']['containers']
+            variable_name = fixed_name + '-' + to_dns_name(str(uuid.uuid4()))
+            if fixed_name not in name_to_variable:
+                name_to_variable[fixed_name] = []
+            if 'ports' in component_mapping[fixed_name]:
+                mapped = dict(map(lambda x: x.values(), component_mapping[fixed_name]['ports']['required']['strong']))
+            pod_definitions.append({
+                'name': variable_name,
+                'type': 'kubernetes:core/v1:Pod',
+                'properties': create_pod_definition(fixed_name, service_idx, container, node_name),
+                'options': {"dependsOn": [f"${{{name_to_variable[k][i]}}}" for k in mapped for i in range(mapped[k])]} if mapped else {}
+            })
+            name_to_variable[fixed_name] += [variable_name]
+        elif component_mapping[fixed_name]['kind'] == 'Service':
+            print(component_mapping[fixed_name]['spec'])
+            pod_definitions.append({
+                'name': fixed_name,
+                'type': 'kubernetes:core/v1:Service',
+                'properties': create_service_definition(fixed_name, component_mapping[fixed_name]['spec']),
+                'options': {"dependsOn": [f"${{{name_to_variable[k][i]}}}" for k in mapped for i in range(mapped[k])]} if mapped else {}
+            })
+            
     return pod_definitions
 
 
@@ -63,6 +74,21 @@ def create_pod_definition(component, service_idx, containers, node_name):
             'containers': containers
         }
     }
+
+def create_service_definition(component, spec):
+    return {
+        'apiVersion': 'v1',
+        'kind': 'Service',
+        'metadata': {
+            'name': component,
+        }, 
+        'spec': spec
+        # 'spec': {
+        #     'nodeName': node_name,
+        #     'containers': containers
+        # }
+    }
+
 
 def no_dash_representer(dumper, value):
     return dumper.represent_mapping('tag:yaml.org,2002:map', value.keys(), flow_style=False)
