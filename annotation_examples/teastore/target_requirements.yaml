@@ -1,0 +1,4 @@
+service_instances:
+  webui-service:
+    replicas: 1
+

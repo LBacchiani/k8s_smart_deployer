@@ -28,16 +28,18 @@ def prepare_deployment_data(order, components):
                 "depends_on": [{"service_name": name_to_variable[k][:mapped[k]]} for k in mapped]
             }
         elif component['kind'] == 'Service':
-            return {
+            result = {
                 "node_name": node_name,
                 "kind": "Service",
-                "type": component['spec']['type'],
                 "service_name": service_name,
                 "variable_name": to_valid_variable_name(service_name),
                 "selector": component['spec']['selector'],
                 "ports": component['spec']['ports'],
                 "depends_on": [{"service_name": name_to_variable[k][:mapped[k]]} for k in mapped]
             }
+            if "type" in component['spec']:
+                result["type"] = component['spec']['type']
+            return result
              
         
     service_group = []

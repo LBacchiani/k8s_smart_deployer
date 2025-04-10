@@ -1,0 +1,12 @@
+k3d-k3s-default-agent-1:
+  resources:
+    memory: "40G"
+    cpu: "9000m"
+k3d-k3s-default-agent-0:
+  resources:
+    memory: "40G"
+    cpu: "8000m"
+k3d-k3s-default-agent-2:
+  resources:
+    memory: "40G"
+    cpu: "8000m"

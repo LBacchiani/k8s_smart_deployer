@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: recommender-service
+spec:
+  selector:
+    app: recommender
+  ports:
+    - protocol: TCP
+      port: 8005
+      targetPort: 8005
+ports:
+  required:
+    strong:
+      - name: "recommender"
+        value: 1

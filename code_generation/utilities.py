@@ -12,3 +12,16 @@ def to_dns_name(image_name: str) -> str:
     transformed_name = transformed_name.strip('-')
     transformed_name = transformed_name.lower()
     return transformed_name
+
+def replace_underscores(obj):
+    if isinstance(obj, dict):
+        return {
+            (k.replace("_", "-") if isinstance(k, str) else k): replace_underscores(v)
+            for k, v in obj.items()
+        }
+    elif isinstance(obj, list):
+        return [replace_underscores(item) for item in obj]
+    elif isinstance(obj, str):
+        return obj.replace("_", "-")
+    else:
+        return obj

@@ -61,13 +61,17 @@ def pulumi_program():
             }
         ),
         spec=k8s.core.v1.ServiceSpecArgs(
-            type='{{ service["type"] }}',
+            {% if service["type"] %}
+                type='{{ service["type"] }}',
+            {% endif %}
             selector={{ service["selector"] }},
             ports=[
                 k8s.core.v1.ServicePortArgs(
                     port={{ service["ports"][0]["port"] }},
                     target_port={{ service["ports"][0]["targetPort"] }},
-                    node_port={{ service["ports"][0]["nodePort"] }}
+                    {% if  service["ports"][0]["nodePort"] %} 
+                        node_port={{  service["ports"][0]["nodePort"] }}
+                    {% endif %}
                 )
             ]
         ),

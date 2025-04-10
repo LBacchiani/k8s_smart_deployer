@@ -93,8 +93,8 @@ def update_usage(placement, requirements, resources):
 def get_topological_sort(bindings):
     graph = {}
     for i in bindings:
-        graph.setdefault((i["req_location"], i["req_location_num"], i["req_comp"], i["req_comp_num"]), set()).add(
-            ( i["prov_location"],i["prov_location_num"],i["prov_comp"],i["prov_comp_num"]))
+        graph.setdefault((i["req-location"], i["req-location-num"], i["req-comp"], i["req-comp-num"]), set()).add(
+            ( i["prov-location"],i["prov-location-num"],i["prov-comp"],i["prov-comp-num"]))
     toposorted = list(toposort.toposort(graph))
     res = []
     for level in toposorted:

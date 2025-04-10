@@ -3,6 +3,7 @@ import sys
 import yaml
 from code_generation.python_code_generation import generate_python_script
 from code_generation.yaml_code_generation import generate_yaml_definition
+from code_generation.utilities import replace_underscores
 from utilities import *
 from optimizer import Optimizer
 import os
@@ -28,7 +29,6 @@ if __name__ == '__main__':
         with open(resource_folder + services + filename, 'r') as f:
             configurations = list(yaml.safe_load_all(f))
             components.append(configurations[0])
-
     #load vms declarative specifications
     with open(resource_folder + vms_decl, 'r') as f:
         vms = list(yaml.safe_load_all(f))[0]
@@ -58,11 +58,11 @@ if __name__ == '__main__':
     
     #compute configuration
     optimizer = Optimizer(port, '--solver, lex-or-tools')
-    configuration = optimizer.optimize(vms, components, target_requirements)
+    configuration = replace_underscores(optimizer.optimize(vms, components, target_requirements))
 
     ###compute resource left
     placement = {x: [(y, configuration['configuration']['locations'][x]['0'][y]) for y in configuration['configuration']['locations'][x]['0']] for x in configuration['configuration']['locations']}
-    requirements = {refine_name(x['metadata']['name']): x['spec']['containers'][0]['resources']['requests'] if x['kind'] == 'Pod' else {'cpu': '0m', 'memory': '0M'} for x in components}
+    requirements = {x['metadata']['name']: x['spec']['containers'][0]['resources']['requests'] if x['kind'] == 'Pod' else {'cpu': '0m', 'memory': '0M'} for x in components}
 
     resource_left = update_usage(placement, requirements, vms)
     os.makedirs(target_folder, exist_ok=True)
@@ -70,7 +70,7 @@ if __name__ == '__main__':
         yaml.dump({'nodes': resource_left}, file, default_flow_style=False)
 
     ##code generation##
-    order = get_topological_sort(configuration['optimized_bindings'])
+    order = get_topological_sort(configuration['optimized-bindings'])
 
     if not order:
         order = [(k, x) for k in configuration['configuration']['locations']
