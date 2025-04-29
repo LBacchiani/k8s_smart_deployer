@@ -47,10 +47,16 @@ if __name__ == '__main__':
             dependencies_left = []
             for dep in c['ports']['required']['strong']:
                 name, val = dep['name'], dep['value']
+                env = ""
+                if 'env' in dep:
+                    env = dep['env']
                 if name in existing_dep:
                     val -= existing_dep[name]
                 if val > 0:
-                    dependencies_left.append({'name': name, 'value': val})
+                    out = {'name': name, 'value': val}
+                    if env != "":
+                        out['env'] = env
+                    dependencies_left.append(out)
             if not dependencies_left:
                 del c['ports']
             else:

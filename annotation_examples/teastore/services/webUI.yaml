@@ -24,15 +24,28 @@ spec:
           value: "8001"
         - name: OUTPUT_SERVICES
           value: '{"http://recommender-service:8005/request":"1","http://image-service:8004/request":"2","http://persistence-service:8003/request":"1","http://auth-service:8002/request":"1"}'
+        - name: DEP1
+          value: "image-service"
+        - name: DEP2
+          value: "persistence-service"
+        - name: DEP3
+          value: "auth-service"
+        - name: DEP4
+          value: "recommender-service"
+
   restartPolicy: Always
 ports:
   required:
     strong:
       - name: "image-service"
         value: 1
+        env: DEP1
       - name: "persistence-service"
         value: 1
+        env: DEP2
       - name: "auth-service"
         value: 1
+        env: DEP3
       - name: "recommender-service"
         value: 1
+        env: DEP4

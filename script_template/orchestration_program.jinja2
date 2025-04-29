@@ -37,7 +37,17 @@ def pulumi_program():
                             'cpu': '{{ service["cpu"] }}',
                             'memory': '{{ service["memory"] }}'
                         }
-                    )
+                    ),
+                    {% if service.get('env') %}
+                    env=[
+                        {% for env_var in service['env'] %}
+                        k8s.core.v1.EnvVarArgs(
+                            name='{{ env_var["name"] }}',
+                            value='{{ env_var["value"] }}'
+                        ),
+                        {% endfor %}
+                    ],
+                    {% endif %}
                 )
             ],
             node_name='{{ service["node_name"] }}'
@@ -147,3 +157,4 @@ if __name__ == '__main__':
         destroy_pods(stack_name)
     else:
         deploy_orchestration(stack_name)
+  

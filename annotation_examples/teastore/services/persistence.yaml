@@ -4,6 +4,7 @@ metadata:
   name: persistence
   labels:
     app: persistence
+    type: persistence-service
 spec:
   containers:
     - name: persistence

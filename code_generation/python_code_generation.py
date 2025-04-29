@@ -5,7 +5,7 @@ from code_generation.utilities import to_valid_variable_name, to_dns_name
 from utilities import *
 
 
-def prepare_deployment_data(order, components):
+def prepare_deployment_data(order, components): 
     component_mapping = {refine_name(comp['metadata']['name']): comp for comp in components}
     deployment_data = []
     name_to_variable = {}
@@ -13,9 +13,12 @@ def prepare_deployment_data(order, components):
     def create_service_data(node_name, service_name, component):
         mapped = []
         if 'ports' in component:
-            mapped = dict(map(lambda x: x.values(), component['ports']['required']['strong']))
+            mapped = {
+                item['name']: [item['value']] + ([item['env']] if 'env' in item else [])
+                for item in component['ports']['required']['strong']
+            }
         if component['kind'] == 'Pod':
-            return {
+            output = {
                 "node_name": node_name,
                 "kind": "Pod",
                 "service_name": service_name,
@@ -25,8 +28,21 @@ def prepare_deployment_data(order, components):
                 "image_name": to_dns_name(component['spec']['containers'][0]['image']),
                 "cpu": component['spec']['containers'][0]['resources']['requests']['cpu'],
                 "memory": component['spec']['containers'][0]['resources']['requests']['memory'],
-                "depends_on": [{"service_name": name_to_variable[k][:mapped[k]]} for k in mapped]
+                "env": component['spec']['containers'][0]['env'],
+                "depends_on": [{"service_name": name_to_variable[k][:mapped[k][0]]} for k in mapped]
             }
+
+            env = output['env']
+            for e in env:
+                name = e['name']
+                if isinstance(mapped, dict):
+                    for key, val in mapped.items():
+                        env_name = val[1]
+                        if name == env_name: 
+                            e['value'] = name_to_variable[key][0]
+            print(env)
+
+            return output
         elif component['kind'] == 'Service':
             result = {
                 "node_name": node_name,
@@ -35,7 +51,7 @@ def prepare_deployment_data(order, components):
                 "variable_name": to_valid_variable_name(service_name),
                 "selector": component['spec']['selector'],
                 "ports": component['spec']['ports'],
-                "depends_on": [{"service_name": name_to_variable[k][:mapped[k]]} for k in mapped]
+                "depends_on": [{"service_name": name_to_variable[k][:mapped[k][0]]} for k in mapped]
             }
             if "type" in component['spec']:
                 result["type"] = component['spec']['type']

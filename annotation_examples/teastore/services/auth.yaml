@@ -4,6 +4,7 @@ metadata:
   name: auth
   labels:
     app: auth
+    type: auth-service
 spec:
   containers:
     - name: auth
@@ -24,9 +25,13 @@ spec:
           value: "8002"
         - name: OUTPUT_SERVICES
           value: '{"http://persistence-service:8003/request":"1"}'
+        - name: DEP1
+          value: "persistence-service"
+
   restartPolicy: Always
 ports:
   required:
     strong:
       - name: "persistence-service"
         value: 1
+        env: DEP1

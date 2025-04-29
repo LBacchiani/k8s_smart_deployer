@@ -4,6 +4,7 @@ metadata:
   name: recommender
   labels:
     app: recommender
+    type: recommender-service
 spec:
   containers:
     - name: recommender

@@ -4,6 +4,7 @@ metadata:
   name: image
   labels:
     app: image
+    type: image-service
 spec:
   containers:
     - name: image
