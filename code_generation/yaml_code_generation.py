@@ -28,13 +28,16 @@ def add_pod_definitions(order, components):
     name_to_variable = {}
     indexed_services = enumerate_service_groups(order)
 
+    service_variable_map = {}
     for node_name, service_idx, service_name in indexed_services:
         variable_name = f"{service_name}-{to_dns_name(str(uuid.uuid4()))}"
-
         if service_name not in name_to_variable:
             name_to_variable[service_name] = []
         name_to_variable[service_name].append(variable_name)
+        service_variable_map[(node_name, service_idx, service_name)] = variable_name
 
+    for node_name, service_idx, service_name in indexed_services:
+        variable_name = name_to_variable[service_name][service_idx]
         component = component_mapping.get(service_name)
         if not component:
             continue
@@ -57,11 +60,12 @@ def add_pod_definitions(order, components):
                 env_list = container.get("env", [])
                 for env in env_list:
                     env_name = env.get("name")
+                    value = env.get("value")
                     for dep_name, dep_info in mapped_dependencies.items():
                         count = dep_info[0]
                         env_key = dep_info[1] if len(dep_info) > 1 else None
-                        if env_name == env_key and dep_name in name_to_variable:
-                            env['value'] = dep_name
+                        if ((env_name == env_key) or (value == dep_name)) and dep_name in name_to_variable:
+                            env['value'] = name_to_variable[dep_name][0]  # Assuming first match
                             depends_on.extend(f"${{{name_to_variable[dep_name][i]}}}" for i in range(count))
 
             props = create_pod_definition(service_name, service_idx, containers, node_name)

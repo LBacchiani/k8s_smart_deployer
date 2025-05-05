@@ -1,8 +1,8 @@
 name: my-k8s-app
 runtime: yaml
 resources:
-  image-979586ff-4415-4e75-bfa0-f7b06124a2d5:
-    name: image-979586ff-4415-4e75-bfa0-f7b06124a2d5
+  image-e85a94f6-b5e7-49d6-8e1a-aeb92acf0cf8:
+    name: image-e85a94f6-b5e7-49d6-8e1a-aeb92acf0cf8
     type: kubernetes:core/v1:Pod
     properties:
       apiVersion: v1
@@ -33,8 +33,8 @@ resources:
           - name: OUTPUT_SERVICES
             value: '{"http://persistence-service:8003/request":"1"}'
     options: {}
-  image-dc7b7d03-4c46-4a4f-81ae-dc57c20ac371:
-    name: image-dc7b7d03-4c46-4a4f-81ae-dc57c20ac371
+  image-6bf72b0c-7041-4ace-a40c-2df04311cb83:
+    name: image-6bf72b0c-7041-4ace-a40c-2df04311cb83
     type: kubernetes:core/v1:Pod
     properties:
       apiVersion: v1
@@ -65,8 +65,8 @@ resources:
           - name: OUTPUT_SERVICES
             value: '{"http://persistence-service:8003/request":"1"}'
     options: {}
-  recommender-92bc6a45-96ea-466c-a962-4550ba1b1c29:
-    name: recommender-92bc6a45-96ea-466c-a962-4550ba1b1c29
+  recommender-8510679f-9a04-4631-8c56-659ff1a68ad7:
+    name: recommender-8510679f-9a04-4631-8c56-659ff1a68ad7
     type: kubernetes:core/v1:Pod
     properties:
       apiVersion: v1
@@ -95,8 +95,8 @@ resources:
           - name: PORT
             value: '8005'
     options: {}
-  persistence-fa2da87e-ad26-45ac-a36d-cdba246935f2:
-    name: persistence-fa2da87e-ad26-45ac-a36d-cdba246935f2
+  persistence-a7da0787-264f-4f40-a9f1-3fba430198a7:
+    name: persistence-a7da0787-264f-4f40-a9f1-3fba430198a7
     type: kubernetes:core/v1:Pod
     properties:
       apiVersion: v1
@@ -125,8 +125,8 @@ resources:
           - name: PORT
             value: '8003'
     options: {}
-  recommender-service-3fb2b4dd-9d1a-45f9-8822-d802af34c254:
-    name: recommender-service-3fb2b4dd-9d1a-45f9-8822-d802af34c254
+  recommender-service-6d0eefaa-d254-43b2-9298-df8c372dbe0f:
+    name: recommender-service-6d0eefaa-d254-43b2-9298-df8c372dbe0f
     type: kubernetes:core/v1:Service
     properties:
       apiVersion: v1
@@ -143,9 +143,9 @@ resources:
           targetPort: 8005
     options:
       dependsOn:
-      - ${recommender-92bc6a45-96ea-466c-a962-4550ba1b1c29}
-  image-service-27545e90-d4fc-4848-8dfc-e5361ed29b83:
-    name: image-service-27545e90-d4fc-4848-8dfc-e5361ed29b83
+      - ${recommender-8510679f-9a04-4631-8c56-659ff1a68ad7}
+  image-service-9227b289-ab05-485a-a1f5-a3a255763d5c:
+    name: image-service-9227b289-ab05-485a-a1f5-a3a255763d5c
     type: kubernetes:core/v1:Service
     properties:
       apiVersion: v1
@@ -162,10 +162,10 @@ resources:
           targetPort: 8004
     options:
       dependsOn:
-      - ${image-979586ff-4415-4e75-bfa0-f7b06124a2d5}
-      - ${image-dc7b7d03-4c46-4a4f-81ae-dc57c20ac371}
-  persistence-service-ae0c52e5-16f6-49eb-b199-85b56951ecad:
-    name: persistence-service-ae0c52e5-16f6-49eb-b199-85b56951ecad
+      - ${image-e85a94f6-b5e7-49d6-8e1a-aeb92acf0cf8}
+      - ${image-6bf72b0c-7041-4ace-a40c-2df04311cb83}
+  persistence-service-1683df31-01ca-4ce0-88c9-ba2ad6da1d46:
+    name: persistence-service-1683df31-01ca-4ce0-88c9-ba2ad6da1d46
     type: kubernetes:core/v1:Service
     properties:
       apiVersion: v1
@@ -182,9 +182,9 @@ resources:
           targetPort: 8003
     options:
       dependsOn:
-      - ${persistence-fa2da87e-ad26-45ac-a36d-cdba246935f2}
-  auth-2d8c4b73-183c-4f59-bceb-5402fffbb06d:
-    name: auth-2d8c4b73-183c-4f59-bceb-5402fffbb06d
+      - ${persistence-a7da0787-264f-4f40-a9f1-3fba430198a7}
+  auth-88defd1e-3c44-4931-b2ef-7ab5ac9757de:
+    name: auth-88defd1e-3c44-4931-b2ef-7ab5ac9757de
     type: kubernetes:core/v1:Pod
     properties:
       apiVersion: v1
@@ -215,12 +215,12 @@ resources:
           - name: OUTPUT_SERVICES
             value: '{"http://persistence-service:8003/request":"1"}'
           - name: DEP1
-            value: persistence-service
+            value: persistence-service-1683df31-01ca-4ce0-88c9-ba2ad6da1d46
     options:
       dependsOn:
-      - ${persistence-service-ae0c52e5-16f6-49eb-b199-85b56951ecad}
-  auth-service-22274278-335d-4aa0-8e9b-561486cf8aae:
-    name: auth-service-22274278-335d-4aa0-8e9b-561486cf8aae
+      - ${persistence-service-1683df31-01ca-4ce0-88c9-ba2ad6da1d46}
+  auth-service-724f2e21-f043-4776-80ea-7a28cc6acdd2:
+    name: auth-service-724f2e21-f043-4776-80ea-7a28cc6acdd2
     type: kubernetes:core/v1:Service
     properties:
       apiVersion: v1
@@ -237,9 +237,9 @@ resources:
           targetPort: 8002
     options:
       dependsOn:
-      - ${auth-2d8c4b73-183c-4f59-bceb-5402fffbb06d}
-  webui-30b36943-e1f0-401b-b13d-54946da070c6:
-    name: webui-30b36943-e1f0-401b-b13d-54946da070c6
+      - ${auth-88defd1e-3c44-4931-b2ef-7ab5ac9757de}
+  webui-eff0ca13-1dc0-4c70-9dd2-4530a862d3df:
+    name: webui-eff0ca13-1dc0-4c70-9dd2-4530a862d3df
     type: kubernetes:core/v1:Pod
     properties:
       apiVersion: v1
@@ -270,21 +270,21 @@ resources:
           - name: OUTPUT_SERVICES
             value: '{"http://recommender-service:8005/request":"1","http://image-service:8004/request":"2","http://persistence-service:8003/request":"1","http://auth-service:8002/request":"1"}'
           - name: DEP1
-            value: image-service
+            value: image-service-9227b289-ab05-485a-a1f5-a3a255763d5c
           - name: DEP2
-            value: persistence-service
+            value: persistence-service-1683df31-01ca-4ce0-88c9-ba2ad6da1d46
           - name: DEP3
-            value: auth-service
+            value: auth-service-724f2e21-f043-4776-80ea-7a28cc6acdd2
           - name: DEP4
-            value: recommender-service
+            value: recommender-service-6d0eefaa-d254-43b2-9298-df8c372dbe0f
     options:
       dependsOn:
-      - ${image-service-27545e90-d4fc-4848-8dfc-e5361ed29b83}
-      - ${persistence-service-ae0c52e5-16f6-49eb-b199-85b56951ecad}
-      - ${auth-service-22274278-335d-4aa0-8e9b-561486cf8aae}
-      - ${recommender-service-3fb2b4dd-9d1a-45f9-8822-d802af34c254}
-  webui-service-2ee18737-3453-4936-92f5-1781eebd054c:
-    name: webui-service-2ee18737-3453-4936-92f5-1781eebd054c
+      - ${image-service-9227b289-ab05-485a-a1f5-a3a255763d5c}
+      - ${persistence-service-1683df31-01ca-4ce0-88c9-ba2ad6da1d46}
+      - ${auth-service-724f2e21-f043-4776-80ea-7a28cc6acdd2}
+      - ${recommender-service-6d0eefaa-d254-43b2-9298-df8c372dbe0f}
+  webui-service-3d0477a8-0c23-46ef-bb51-b1d90fd323b6:
+    name: webui-service-3d0477a8-0c23-46ef-bb51-b1d90fd323b6
     type: kubernetes:core/v1:Service
     properties:
       apiVersion: v1
@@ -302,4 +302,4 @@ resources:
           nodePort: 30001
     options:
       dependsOn:
-      - ${webui-30b36943-e1f0-401b-b13d-54946da070c6}
+      - ${webui-eff0ca13-1dc0-4c70-9dd2-4530a862d3df}
