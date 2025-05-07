@@ -1,19 +1,18 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: image-service
   labels:
-    type: image-service
+    type: image-service-type
 spec:
   selector:
-    app: image
-    type: image-service
+    type: image-type
   ports:
     - protocol: TCP
       port: 8004
       targetPort: 8004
+
 ports:
   required:
     strong:
-      - name: "image"
+      - type: "image-type"
         value: 2

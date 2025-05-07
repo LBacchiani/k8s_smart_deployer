@@ -1,4 +1,6 @@
 service_instances:
-  webui-service:
+  - type: "webui-service-type"
     replicas: 1
+  
+    
 

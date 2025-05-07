@@ -46,14 +46,14 @@ if __name__ == '__main__':
         if 'ports' in c:
             dependencies_left = []
             for dep in c['ports']['required']['strong']:
-                name, val = dep['name'], dep['value']
+                dep_type, val = dep['type'], dep['value']
                 env = ""
                 if 'env' in dep:
                     env = dep['env']
-                if name in existing_dep:
-                    val -= existing_dep[name]
+                if dep_type in existing_dep:
+                    val -= existing_dep[dep_type]
                 if val > 0:
-                    out = {'name': name, 'value': val}
+                    out = {'type': dep_type, 'value': val}
                     if env != "":
                         out['env'] = env
                     dependencies_left.append(out)
@@ -61,14 +61,13 @@ if __name__ == '__main__':
                 del c['ports']
             else:
                 c['ports']['required']['strong'] = dependencies_left
-    
+
     #compute configuration
     optimizer = Optimizer(port, '--solver, lex-or-tools')
     configuration = replace_underscores(optimizer.optimize(vms, components, target_requirements))
-
     ###compute resource left
     placement = {x: [(y, configuration['configuration']['locations'][x]['0'][y]) for y in configuration['configuration']['locations'][x]['0']] for x in configuration['configuration']['locations']}
-    requirements = {x['metadata']['name']: x['spec']['containers'][0]['resources']['requests'] if x['kind'] == 'Pod' else {'cpu': '0m', 'memory': '0M'} for x in components}
+    requirements = {x['metadata']['labels']['type']: x['spec']['containers'][0]['resources']['requests'] if x['kind'] == 'Pod' else {'cpu': '0m', 'memory': '0M'} for x in components}
 
     resource_left = update_usage(placement, requirements, vms)
     os.makedirs(target_folder, exist_ok=True)

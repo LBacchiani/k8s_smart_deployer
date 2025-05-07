@@ -1,6 +1,5 @@
 import json
 from requests import post as requests_post
-
 from utilities import *
 
 class Optimizer:
@@ -12,6 +11,7 @@ class Optimizer:
         '''Sums up the resource requirements of containers in a pod.'''
         total_cpu = 0
         total_ram = 0
+        pod_type = component['metadata']['labels']['type']
         to_return = {'resources': {}, 'provides': [{}], 'requires': {}}
         if component['kind'] == 'Pod':
             for container in component['spec']['containers']:
@@ -20,14 +20,14 @@ class Optimizer:
                     total_ram += ram_convertion(container['resources']['requests']['memory'])
                 except KeyError as e:
                     raise Exception('Resource request for {}\'s {} container lacks {} key.'
-                                    .format(component['metadata']['name'], container['name'], e))
+                                    .format(pod_type, container['name'], e))
         to_return['resources'] = {'memory': total_ram, 'cpu': total_cpu}
         if 'ports' in component:
             required = {}
             for port in component['ports']['required']['strong']:
-                required[port['name']] = port['value']
+                required[port['type']] = port['value']
             to_return['requires'] = required
-        to_return['provides'] = [{'ports': [component['metadata']['name']], 'num': -1}]
+        to_return['provides'] = [{'ports': [pod_type], 'num': -1}]
         return to_return
 
     def match_by_app(self, components, values):
@@ -81,15 +81,19 @@ class Optimizer:
             spec['options'] = self.options
         spec['specification'] = ''
         for component in components:
-            pod_name = refine_name(component['metadata']['name'])
+            pod_type = component['metadata']['labels']['type']
+            pod_name = refine_name(pod_type)
             spec['components'][pod_name] = self.requirements(component)
             if spec['specification']: spec['specification'] += ' and '
             value = 0
-            if component['metadata']['name'] in target['service_instances']: 
-                value = target['service_instances'][component['metadata']['name']]['replicas']
+            for instance in target['service_instances']:
+                if pod_type == instance['type']:
+                    value = instance['replicas']
+            if pod_type in target['service_instances']: 
+                value = target['service_instances'][pod_type]['replicas']
             spec['specification'] += '{} >= {}'.format(pod_name, value)
-            if 'deployment_preferences' in target and component['metadata']['name'] in target['deployment_preferences']:
-                affinities = self.pod_affinity(component, components, target['deployment_preferences'][component['metadata']['name']])
+            if 'deployment_preferences' in target and pod_type in target['deployment_preferences']:
+                affinities = self.pod_affinity(component, components, target['deployment_preferences'][pod_type])
                 if affinities: spec['specification'] += ' and {}'.format(affinities)
         spec['specification'] += '; cost; (sum ?y in components: ?y)'
         return spec

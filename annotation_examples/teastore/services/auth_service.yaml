@@ -1,13 +1,11 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: auth-service
   labels:
-    type: auth-service
+    type: auth-service-type
 spec:
   selector:
-    app: auth
-    type: auth-service
+    type: auth-type
   ports:
     - protocol: TCP
       port: 8002
@@ -15,5 +13,5 @@ spec:
 ports:
   required:
     strong:
-      - name: "auth"
+      - type: "auth-type"
         value: 1

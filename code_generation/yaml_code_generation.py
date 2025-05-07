@@ -3,7 +3,6 @@ import uuid
 import yaml
 from code_generation.utilities import to_dns_name
 
-
 class NoAliasDumper(yaml.SafeDumper):
     def ignore_aliases(self, data):
         return True
@@ -23,7 +22,7 @@ def enumerate_service_groups(input_list):
 
 
 def add_pod_definitions(order, components):
-    component_mapping = {comp['metadata']['name']: comp for comp in components}
+    component_mapping = {comp['metadata']['labels']['type']: comp for comp in components}
     pod_definitions = []
     name_to_variable = {}
     indexed_services = enumerate_service_groups(order)
@@ -44,14 +43,16 @@ def add_pod_definitions(order, components):
 
         kind = component.get("kind")
         mapped_dependencies = {}
+        
         ports_required = component.get('ports', {}).get('required', {}).get('strong', [])
         for entry in ports_required:
-            dep_name = entry.get("name")
+            dep_name = entry.get("type")
             dep_count = entry.get("value", 1)
             if dep_name:
                 mapped_dependencies[dep_name] = [dep_count]
                 if "env" in entry:
-                    mapped_dependencies[dep_name].append(entry["env"])  # [count, env_name]
+                    mapped_dependencies[dep_name].append(entry["env"])
+        
 
         depends_on = []
         if kind == 'Pod':
@@ -65,13 +66,13 @@ def add_pod_definitions(order, components):
                         count = dep_info[0]
                         env_key = dep_info[1] if len(dep_info) > 1 else None
                         if ((env_name == env_key) or (value == dep_name)) and dep_name in name_to_variable:
-                            env['value'] = name_to_variable[dep_name][0]  # Assuming first match
+                            env['value'] = name_to_variable[dep_name][0]
                             depends_on.extend(f"${{{name_to_variable[dep_name][i]}}}" for i in range(count))
 
-            props = create_pod_definition(service_name, service_idx, containers, node_name)
+            props = create_pod_definition(service_name, component, node_name)
 
         elif kind == 'Service':
-            props = create_service_definition(service_name, component['spec'])
+            props = create_service_definition(service_name, component)
             for dep_name, dep_info in mapped_dependencies.items():
                 count = dep_info[0]
                 if dep_name in name_to_variable:
@@ -87,29 +88,30 @@ def add_pod_definitions(order, components):
     return pod_definitions
 
 
-def create_pod_definition(component, service_idx, containers, node_name):
+def create_pod_definition(name, component, node_name):
     return {
         'apiVersion': 'v1',
         'kind': 'Pod',
         'metadata': {
-            'name': f"{component}-{service_idx}-${{pulumi.stack}}",
-            'labels': {'app': component}
+            'name': name,
+            'labels': component['metadata'].get('labels', {}) 
         },
         'spec': {
             'nodeName': node_name,
-            'containers': containers
+            'containers': component['spec']['containers']
         }
     }
 
 
-def create_service_definition(component, spec):
+def create_service_definition(name, component):
     return {
         'apiVersion': 'v1',
         'kind': 'Service',
         'metadata': {
-            'name': component,
+            'name': name,
+            'labels': component['metadata'].get('labels', {}) 
         },
-        'spec': spec
+        'spec': component['spec']
     }
 
 

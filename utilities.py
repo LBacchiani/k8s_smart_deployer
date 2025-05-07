@@ -1,6 +1,6 @@
 from re import match as re_match
+from re import sub
 import toposort
-
 
 def cpu_convertion(cpu):
     '''k8s allows for fractional CPUs, in two units: 100m (millicpu/millicores) or 0.1.'''
@@ -78,17 +78,26 @@ def convert_resources(vm_properties):
 
 def update_usage(placement, requirements, resources):
     resources_left = convert_resources(resources)
+
+    def find_requirement(service_id):
+        for prefix in requirements:
+            if service_id.startswith(prefix):
+                return requirements[prefix]
+        raise ValueError(f"No matching requirement found for service ID: {service_id}")
+
     for node in placement:
-        for (s,n) in placement[node]:
-            cpu = cpu_convertion(requirements[s]['cpu']) * n
-            mem = ram_convertion(requirements[s]['memory']) * n
+        for (service_id, count) in placement[node]:
+            req = find_requirement(service_id)
+            cpu = cpu_convertion(req['cpu']) * count
+            mem = ram_convertion(req['memory']) * count
             resources_left[node]['resources']['cpu'] -= cpu
             resources_left[node]['resources']['memory'] -= mem
+
     for r in resources_left:
         resources_left[r]['resources']['cpu'] = str(resources_left[r]['resources']['cpu']) + 'm'
-        resources_left[r]['resources']['memory'] =  scale_storage(resources_left[r]['resources']['memory']) 
-    return resources_left
+        resources_left[r]['resources']['memory'] = scale_storage(resources_left[r]['resources']['memory'])
 
+    return resources_left
 
 def get_topological_sort(bindings):
     graph = {}

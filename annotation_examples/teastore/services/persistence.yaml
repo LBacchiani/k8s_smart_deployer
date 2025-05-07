@@ -1,10 +1,8 @@
 apiVersion: v1
 kind: Pod
 metadata:
-  name: persistence
   labels:
-    app: persistence
-    type: persistence-service
+    type: persistence-type
 spec:
   containers:
     - name: persistence

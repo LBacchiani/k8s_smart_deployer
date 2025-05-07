@@ -1,10 +1,8 @@
 apiVersion: v1
 kind: Pod
 metadata:
-  name: recommender
   labels:
-    app: recommender
-    type: recommender-service
+    type: recommender-type
 spec:
   containers:
     - name: recommender

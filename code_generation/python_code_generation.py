@@ -6,7 +6,7 @@ from utilities import *
 
 
 def prepare_deployment_data(order, components): 
-    component_mapping = {refine_name(comp['metadata']['name']): comp for comp in components}
+    component_mapping = {refine_name(comp['metadata']['labels']['type']): comp for comp in components}
     deployment_data = []
     name_to_variable = {}
 
@@ -14,7 +14,7 @@ def prepare_deployment_data(order, components):
         mapped = []
         if 'ports' in component:
             mapped = {
-                item['name']: [item['value']]
+                item['type']: [item['value']]
                 for item in component['ports']['required']['strong']
             }
         if component['kind'] == 'Pod':
@@ -51,21 +51,19 @@ def prepare_deployment_data(order, components):
         if 'ports' not in component:
             return
         
-        # We map the generated name of the service to the corresponding port
-        ports = [ item['name'] for item in component['ports']['required']['strong']]
+        ports = [ item['type'] for item in component['ports']['required']['strong']]
         ports_to_gen_names = {}
         for data in deployment_data:
             for deployment in data:
                 kind = deployment["kind"]
                 if kind != "Service": 
-                    continue 
-                name = deployment['metadata']['name']
+                    continue
+                name = deployment['metadata']['labels']['type']
 
                 for port_name in ports:
                     if name == port_name and name not in ports_to_gen_names:
                         ports_to_gen_names[name] = deployment['service_name']
         
-        # Update the environment variables
         for data in deployment_data:
             for deployment in data:
                 kind = deployment["kind"]
@@ -74,28 +72,25 @@ def prepare_deployment_data(order, components):
                 for env in deployment['env']:
                     value = env['value']
                     if value in ports_to_gen_names:
-                        print(env['name'])
                         env['value'] = ports_to_gen_names[value]
         
     service_group = []
-    for node_name, service_name in order:
-        uuid_var = str(uuid.uuid4())
-        tmp_name = service_name.replace('_','-')
-        if service_name not in name_to_variable:
-            name_to_variable[service_name] = []
-        service_props = component_mapping[refine_name(service_name)]
-        gen_service_name = f"{tmp_name.replace('_','-')}-{uuid_var}" if service_props['kind'] == 'Pod' else f"{tmp_name}"
+    for node_name, service_type in order:
+        generated_name = f"{service_type}-{uuid.uuid4()}"
+        if service_type not in name_to_variable:
+            name_to_variable[service_type] = []
+        service_props = component_mapping[refine_name(service_type)]
         service_data = create_service_data(
             node_name=node_name,
-            service_name=gen_service_name,
+            service_name=generated_name,
             component=service_props
         )
-        name_to_variable[service_name] += [to_valid_variable_name(gen_service_name)]
+
+        name_to_variable[service_type] += [to_valid_variable_name(generated_name)]
         service_group.append(service_data)
     deployment_data.append(service_group)
-
-    for _, service_name in order:
-        component = component_mapping[refine_name(service_name)]
+    for _, service_type in order:
+        component = component_mapping[refine_name(service_type)]
         bind_ports(component, deployment_data)
 
     return deployment_data
@@ -109,6 +104,7 @@ def generate_python_script(order, components, folder_name):
 
     increase_name = f"increase-{uuid.uuid4()}"
     project_name = f"pulumi-k8s-{increase_name}"
+
     deployment_data = prepare_deployment_data(order, components)
 
     rendered_script = template.render(

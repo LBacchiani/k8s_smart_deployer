@@ -1,16 +1,16 @@
 name: my-k8s-app
 runtime: yaml
 resources:
-  image-e85a94f6-b5e7-49d6-8e1a-aeb92acf0cf8:
-    name: image-e85a94f6-b5e7-49d6-8e1a-aeb92acf0cf8
+  image-type-7dbb1716-5fb8-41c7-8a91-ce863539c6d4:
+    name: image-type-7dbb1716-5fb8-41c7-8a91-ce863539c6d4
     type: kubernetes:core/v1:Pod
     properties:
       apiVersion: v1
       kind: Pod
       metadata:
-        name: image-0-${pulumi.stack}
+        name: image-type
         labels:
-          app: image
+          type: image-type
       spec:
         nodeName: k3d-k3s-default-agent-0
         containers:
@@ -33,78 +33,16 @@ resources:
           - name: OUTPUT_SERVICES
             value: '{"http://persistence-service:8003/request":"1"}'
     options: {}
-  image-6bf72b0c-7041-4ace-a40c-2df04311cb83:
-    name: image-6bf72b0c-7041-4ace-a40c-2df04311cb83
+  persistence-type-d76c5cdf-bcd9-496e-a36e-d94de8423711:
+    name: persistence-type-d76c5cdf-bcd9-496e-a36e-d94de8423711
     type: kubernetes:core/v1:Pod
     properties:
       apiVersion: v1
       kind: Pod
       metadata:
-        name: image-1-${pulumi.stack}
+        name: persistence-type
         labels:
-          app: image
-      spec:
-        nodeName: k3d-k3s-default-agent-0
-        containers:
-        - name: image
-          image: giovaz94/tea-store-general
-          imagePullPolicy: Always
-          ports:
-          - containerPort: 8002
-          resources:
-            requests:
-              cpu: 10m
-              memory: 10M
-          env:
-          - name: MCL
-            value: '190'
-          - name: SERVICE_NAME
-            value: image
-          - name: PORT
-            value: '8002'
-          - name: OUTPUT_SERVICES
-            value: '{"http://persistence-service:8003/request":"1"}'
-    options: {}
-  recommender-8510679f-9a04-4631-8c56-659ff1a68ad7:
-    name: recommender-8510679f-9a04-4631-8c56-659ff1a68ad7
-    type: kubernetes:core/v1:Pod
-    properties:
-      apiVersion: v1
-      kind: Pod
-      metadata:
-        name: recommender-0-${pulumi.stack}
-        labels:
-          app: recommender
-      spec:
-        nodeName: k3d-k3s-default-agent-0
-        containers:
-        - name: recommender
-          image: giovaz94/tea-store-general
-          imagePullPolicy: Always
-          ports:
-          - containerPort: 8005
-          resources:
-            requests:
-              cpu: 10m
-              memory: 10M
-          env:
-          - name: MCL
-            value: '190'
-          - name: SERVICE_NAME
-            value: recommender
-          - name: PORT
-            value: '8005'
-    options: {}
-  persistence-a7da0787-264f-4f40-a9f1-3fba430198a7:
-    name: persistence-a7da0787-264f-4f40-a9f1-3fba430198a7
-    type: kubernetes:core/v1:Pod
-    properties:
-      apiVersion: v1
-      kind: Pod
-      metadata:
-        name: persistence-0-${pulumi.stack}
-        labels:
-          app: persistence
+          type: persistence-type
       spec:
         nodeName: k3d-k3s-default-agent-0
         containers:
@@ -125,74 +63,160 @@ resources:
           - name: PORT
             value: '8003'
     options: {}
-  recommender-service-6d0eefaa-d254-43b2-9298-df8c372dbe0f:
-    name: recommender-service-6d0eefaa-d254-43b2-9298-df8c372dbe0f
+  recommender-type-8d8a04fd-4dba-4c57-81dd-e17966a98e28:
+    name: recommender-type-8d8a04fd-4dba-4c57-81dd-e17966a98e28
+    type: kubernetes:core/v1:Pod
+    properties:
+      apiVersion: v1
+      kind: Pod
+      metadata:
+        name: recommender-type
+        labels:
+          type: recommender-type
+      spec:
+        nodeName: k3d-k3s-default-agent-0
+        containers:
+        - name: recommender
+          image: giovaz94/tea-store-general
+          imagePullPolicy: Always
+          ports:
+          - containerPort: 8005
+          resources:
+            requests:
+              cpu: 10m
+              memory: 10M
+          env:
+          - name: MCL
+            value: '190'
+          - name: SERVICE_NAME
+            value: recommender
+          - name: PORT
+            value: '8005'
+    options: {}
+  image-type-76cb45a1-2813-43b3-8183-a9e72eae6125:
+    name: image-type-76cb45a1-2813-43b3-8183-a9e72eae6125
+    type: kubernetes:core/v1:Pod
+    properties:
+      apiVersion: v1
+      kind: Pod
+      metadata:
+        name: image-type
+        labels:
+          type: image-type
+      spec:
+        nodeName: k3d-k3s-default-agent-0
+        containers:
+        - name: image
+          image: giovaz94/tea-store-general
+          imagePullPolicy: Always
+          ports:
+          - containerPort: 8002
+          resources:
+            requests:
+              cpu: 10m
+              memory: 10M
+          env:
+          - name: MCL
+            value: '190'
+          - name: SERVICE_NAME
+            value: image
+          - name: PORT
+            value: '8002'
+          - name: OUTPUT_SERVICES
+            value: '{"http://persistence-service:8003/request":"1"}'
+    options: {}
+  image-service-type-19bcc499-6584-4e64-a51b-aa1ae8f6bfff:
+    name: image-service-type-19bcc499-6584-4e64-a51b-aa1ae8f6bfff
     type: kubernetes:core/v1:Service
     properties:
       apiVersion: v1
       kind: Service
       metadata:
-        name: recommender-service
+        name: image-service-type
+        labels:
+          type: image-service-type
       spec:
         selector:
-          app: recommender
-          type: recommender-service
-        ports:
-        - protocol: TCP
-          port: 8005
-          targetPort: 8005
-    options:
-      dependsOn:
-      - ${recommender-8510679f-9a04-4631-8c56-659ff1a68ad7}
-  image-service-9227b289-ab05-485a-a1f5-a3a255763d5c:
-    name: image-service-9227b289-ab05-485a-a1f5-a3a255763d5c
-    type: kubernetes:core/v1:Service
-    properties:
-      apiVersion: v1
-      kind: Service
-      metadata:
-        name: image-service
-      spec:
-        selector:
-          app: image
-          type: image-service
+          type: image-type
         ports:
         - protocol: TCP
           port: 8004
           targetPort: 8004
     options:
       dependsOn:
-      - ${image-e85a94f6-b5e7-49d6-8e1a-aeb92acf0cf8}
-      - ${image-6bf72b0c-7041-4ace-a40c-2df04311cb83}
-  persistence-service-1683df31-01ca-4ce0-88c9-ba2ad6da1d46:
-    name: persistence-service-1683df31-01ca-4ce0-88c9-ba2ad6da1d46
+      - ${image-type-7dbb1716-5fb8-41c7-8a91-ce863539c6d4}
+      - ${image-type-76cb45a1-2813-43b3-8183-a9e72eae6125}
+  persistence-service-type-68d69103-76d1-4e0f-b665-59036947a5c8:
+    name: persistence-service-type-68d69103-76d1-4e0f-b665-59036947a5c8
     type: kubernetes:core/v1:Service
     properties:
       apiVersion: v1
       kind: Service
       metadata:
-        name: persistence-service
+        name: persistence-service-type
+        labels:
+          type: persistence-service-type
       spec:
         selector:
-          app: persistence
-          type: persistence-service
+          type: persistence-type
         ports:
         - protocol: TCP
           port: 8003
           targetPort: 8003
     options:
       dependsOn:
-      - ${persistence-a7da0787-264f-4f40-a9f1-3fba430198a7}
-  auth-88defd1e-3c44-4931-b2ef-7ab5ac9757de:
-    name: auth-88defd1e-3c44-4931-b2ef-7ab5ac9757de
+      - ${persistence-type-d76c5cdf-bcd9-496e-a36e-d94de8423711}
+  recommender-service-type-98d367e2-12db-4dab-8a26-10a75234cfe2:
+    name: recommender-service-type-98d367e2-12db-4dab-8a26-10a75234cfe2
+    type: kubernetes:core/v1:Service
+    properties:
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: recommender-service-type
+        labels:
+          type: recommender-service-type
+      spec:
+        selector:
+          type: recommender-type
+        ports:
+        - protocol: TCP
+          port: 8005
+          targetPort: 8005
+    options:
+      dependsOn:
+      - ${recommender-type-8d8a04fd-4dba-4c57-81dd-e17966a98e28}
+  image-service-type-01a93387-e88f-4d55-a9fa-6efa906ffb1e:
+    name: image-service-type-01a93387-e88f-4d55-a9fa-6efa906ffb1e
+    type: kubernetes:core/v1:Service
+    properties:
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: image-service-type
+        labels:
+          type: image-service-type
+      spec:
+        selector:
+          type: image-type
+        ports:
+        - protocol: TCP
+          port: 8004
+          targetPort: 8004
+    options:
+      dependsOn:
+      - ${image-type-7dbb1716-5fb8-41c7-8a91-ce863539c6d4}
+      - ${image-type-76cb45a1-2813-43b3-8183-a9e72eae6125}
+  auth-type-f7372e0e-21f3-4a10-85e2-84e5f4428565:
+    name: auth-type-f7372e0e-21f3-4a10-85e2-84e5f4428565
     type: kubernetes:core/v1:Pod
     properties:
       apiVersion: v1
       kind: Pod
       metadata:
-        name: auth-0-${pulumi.stack}
+        name: auth-type
         labels:
-          app: auth
+          type: auth-type
       spec:
         nodeName: k3d-k3s-default-agent-0
         containers:
@@ -215,39 +239,40 @@ resources:
           - name: OUTPUT_SERVICES
             value: '{"http://persistence-service:8003/request":"1"}'
           - name: DEP1
-            value: persistence-service-1683df31-01ca-4ce0-88c9-ba2ad6da1d46
+            value: persistence-service-type-68d69103-76d1-4e0f-b665-59036947a5c8
     options:
       dependsOn:
-      - ${persistence-service-1683df31-01ca-4ce0-88c9-ba2ad6da1d46}
-  auth-service-724f2e21-f043-4776-80ea-7a28cc6acdd2:
-    name: auth-service-724f2e21-f043-4776-80ea-7a28cc6acdd2
+      - ${persistence-service-type-68d69103-76d1-4e0f-b665-59036947a5c8}
+  auth-service-type-17746685-1f8e-4b2e-9cb5-d851569e45b1:
+    name: auth-service-type-17746685-1f8e-4b2e-9cb5-d851569e45b1
     type: kubernetes:core/v1:Service
     properties:
       apiVersion: v1
       kind: Service
       metadata:
-        name: auth-service
+        name: auth-service-type
+        labels:
+          type: auth-service-type
       spec:
         selector:
-          app: auth
-          type: auth-service
+          type: auth-type
         ports:
         - protocol: TCP
           port: 8002
           targetPort: 8002
     options:
       dependsOn:
-      - ${auth-88defd1e-3c44-4931-b2ef-7ab5ac9757de}
-  webui-eff0ca13-1dc0-4c70-9dd2-4530a862d3df:
-    name: webui-eff0ca13-1dc0-4c70-9dd2-4530a862d3df
+      - ${auth-type-f7372e0e-21f3-4a10-85e2-84e5f4428565}
+  webui-type-293d68ec-1f84-4fc7-aacd-23c19c17204e:
+    name: webui-type-293d68ec-1f84-4fc7-aacd-23c19c17204e
     type: kubernetes:core/v1:Pod
     properties:
       apiVersion: v1
       kind: Pod
       metadata:
-        name: webui-0-${pulumi.stack}
+        name: webui-type
         labels:
-          app: webui
+          type: webui-type
       spec:
         nodeName: k3d-k3s-default-agent-0
         containers:
@@ -270,31 +295,34 @@ resources:
           - name: OUTPUT_SERVICES
             value: '{"http://recommender-service:8005/request":"1","http://image-service:8004/request":"2","http://persistence-service:8003/request":"1","http://auth-service:8002/request":"1"}'
           - name: DEP1
-            value: image-service-9227b289-ab05-485a-a1f5-a3a255763d5c
+            value: image-service-type-19bcc499-6584-4e64-a51b-aa1ae8f6bfff
           - name: DEP2
-            value: persistence-service-1683df31-01ca-4ce0-88c9-ba2ad6da1d46
+            value: persistence-service-type-68d69103-76d1-4e0f-b665-59036947a5c8
           - name: DEP3
-            value: auth-service-724f2e21-f043-4776-80ea-7a28cc6acdd2
+            value: auth-service-type-17746685-1f8e-4b2e-9cb5-d851569e45b1
           - name: DEP4
-            value: recommender-service-6d0eefaa-d254-43b2-9298-df8c372dbe0f
+            value: recommender-service-type-98d367e2-12db-4dab-8a26-10a75234cfe2
     options:
       dependsOn:
-      - ${image-service-9227b289-ab05-485a-a1f5-a3a255763d5c}
-      - ${persistence-service-1683df31-01ca-4ce0-88c9-ba2ad6da1d46}
-      - ${auth-service-724f2e21-f043-4776-80ea-7a28cc6acdd2}
-      - ${recommender-service-6d0eefaa-d254-43b2-9298-df8c372dbe0f}
-  webui-service-3d0477a8-0c23-46ef-bb51-b1d90fd323b6:
-    name: webui-service-3d0477a8-0c23-46ef-bb51-b1d90fd323b6
+      - ${image-service-type-19bcc499-6584-4e64-a51b-aa1ae8f6bfff}
+      - ${image-service-type-01a93387-e88f-4d55-a9fa-6efa906ffb1e}
+      - ${persistence-service-type-68d69103-76d1-4e0f-b665-59036947a5c8}
+      - ${auth-service-type-17746685-1f8e-4b2e-9cb5-d851569e45b1}
+      - ${recommender-service-type-98d367e2-12db-4dab-8a26-10a75234cfe2}
+  webui-service-type-0653f8dc-505e-4d59-a918-a8574be09165:
+    name: webui-service-type-0653f8dc-505e-4d59-a918-a8574be09165
     type: kubernetes:core/v1:Service
     properties:
       apiVersion: v1
       kind: Service
       metadata:
-        name: webui-service
+        name: webui-service-type
+        labels:
+          type: webui-service-type
       spec:
         type: NodePort
         selector:
-          app: webui
+          type: webui-type
         ports:
         - protocol: TCP
           port: 8001
@@ -302,4 +330,4 @@ resources:
           nodePort: 30001
     options:
       dependsOn:
-      - ${webui-eff0ca13-1dc0-4c70-9dd2-4530a862d3df}
+      - ${webui-type-293d68ec-1f84-4fc7-aacd-23c19c17204e}
