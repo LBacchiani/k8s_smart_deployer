@@ -51,7 +51,10 @@ def prepare_deployment_data(order, components):
         if 'ports' not in component:
             return
         
-        ports = [ item['type'] for item in component['ports']['required']['strong']]
+        strong_port_data = component['ports']['required']['strong']
+        ports_value = [ item['type'] for item in strong_port_data]
+        id_type_map = {item['id']: item['type'] for item in strong_port_data if 'id' in item}
+
         ports_to_gen_names = {}
         for data in deployment_data:
             for deployment in data:
@@ -60,7 +63,7 @@ def prepare_deployment_data(order, components):
                     continue
                 name = deployment['metadata']['labels']['type']
 
-                for port_name in ports:
+                for port_name in ports_value:
                     if name == port_name and name not in ports_to_gen_names:
                         ports_to_gen_names[name] = deployment['service_name']
         
@@ -69,10 +72,9 @@ def prepare_deployment_data(order, components):
                 kind = deployment["kind"]
                 if kind != "Pod": 
                     continue 
-                for env in deployment['env']:
-                    value = env['value']
-                    if value in ports_to_gen_names:
-                        env['value'] = ports_to_gen_names[value]
+                for id_val, type_val in id_type_map.items():
+                    value = ports_to_gen_names[type_val]
+                    deployment['env'].append({"name": id_val, "value": value})
         
     service_group = []
     for node_name, service_type in order:

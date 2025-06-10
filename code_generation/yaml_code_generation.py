@@ -46,12 +46,11 @@ def add_pod_definitions(order, components):
         
         ports_required = component.get('ports', {}).get('required', {}).get('strong', [])
         for entry in ports_required:
-            dep_name = entry.get("type")
+            dep_name = entry.get("id")
+            dep_type = entry.get("type")
             dep_count = entry.get("value", 1)
             if dep_name:
-                mapped_dependencies[dep_name] = [dep_count]
-                if "env" in entry:
-                    mapped_dependencies[dep_name].append(entry["env"])
+                mapped_dependencies[dep_name] = [dep_type, dep_count]
         
 
         depends_on = []
@@ -59,15 +58,13 @@ def add_pod_definitions(order, components):
             containers = component['spec']['containers']
             for container in containers:
                 env_list = container.get("env", [])
-                for env in env_list:
-                    env_name = env.get("name")
-                    value = env.get("value")
-                    for dep_name, dep_info in mapped_dependencies.items():
-                        count = dep_info[0]
-                        env_key = dep_info[1] if len(dep_info) > 1 else None
-                        if ((env_name == env_key) or (value == dep_name)) and dep_name in name_to_variable:
-                            env['value'] = name_to_variable[dep_name][0]
-                            depends_on.extend(f"${{{name_to_variable[dep_name][i]}}}" for i in range(count))
+                for dep_name, dep_info in mapped_dependencies.items():
+                    dep_type = dep_info[0]
+                    dep_count =  dep_info[1]
+                    if dep_type in name_to_variable:
+                        value = name_to_variable[dep_type][0]
+                        env_list.append({"name": dep_name, "value": value})
+                        depends_on.extend(f"${{{name_to_variable[dep_type][i]}}}" for i in range(dep_count))
 
             props = create_pod_definition(service_name, component, node_name)
 
