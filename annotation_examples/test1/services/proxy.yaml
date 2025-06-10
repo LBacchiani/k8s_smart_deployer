@@ -3,7 +3,7 @@ kind: Pod
 metadata:
   name: proxy
   labels:
-    app: proxy
+    type: proxy-type
 spec:
   containers:
     - name: proxy-container

@@ -86,6 +86,7 @@ class Optimizer:
             spec['components'][pod_name] = self.requirements(component)
             if spec['specification']: spec['specification'] += ' and '
             value = 0
+            print(target['service_instances'])
             for instance in target['service_instances']:
                 if pod_type == instance['type']:
                     value = instance['replicas']

@@ -3,10 +3,10 @@ kind: Pod
 metadata:
   name: backend
   labels:
-    app: backend
+    type: backend-type
 spec:
   containers:
-    - name: proxy-container
+    - name: backend-container
       image: k8s.gcr.io/pause:2.0
       resources:
         requests:
@@ -15,5 +15,6 @@ spec:
 ports:
   required:
     strong:
-      - name: "proxy"
+      - type: "proxy-type"
+        id: PORT_PROXY
         value: 1

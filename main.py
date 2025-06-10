@@ -39,7 +39,7 @@ if __name__ == '__main__':
         target_requirements = list(yaml.safe_load_all(f))[0]
         if 'existingDependencies' in target_requirements:
             for dep in target_requirements['existingDependencies']:
-                existing_dep[dep['name']] = dep['value']
+                existing_dep[dep['type']] = dep['value']
 
     #remove strong dep already satisfied
     for c in components:
