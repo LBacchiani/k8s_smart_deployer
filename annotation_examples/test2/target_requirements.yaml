@@ -8,8 +8,7 @@ existingDependencies:
 
 
 deployment_preferences:
-  - backend:
-      type: backend-type 
+  - backend-type:
       affinity:
         operator: In
         values:

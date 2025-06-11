@@ -61,8 +61,6 @@ class Optimizer:
     def pod_affinity(self, component, components, preferences):
         affinities = []
         for pref, expressions in preferences.items():
-            if pref == "type":
-                continue
             if isinstance(expressions, dict):
                 expressions = [expressions]
             for expression in expressions:
@@ -94,8 +92,7 @@ class Optimizer:
             spec['specification'] += '{} >= {}'.format(pod_name, value)
             if 'deployment_preferences' in target:
                 for resource in target['deployment_preferences']:
-                    for preferences in resource.values():
-                        resource_type = preferences['type']
+                    for resource_type, preferences in resource.items():
                         if pod_type == resource_type:
                             affinities = self.pod_affinity(component, components, preferences)
                             if affinities: spec['specification'] += ' and {}'.format(affinities)
