@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+      prometheus.io/scrape: "true"
+      prometheus.io/port: "80"
+      prometheus.io/path: "/metrics"
+  labels:
+    type: header-analyzer-service-type
+spec:
+  selector:
+    type: header-analyzer-type
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+
+ports:
+  required:
+    strong:
+      - type: "header-analyzer-type"
+        value: 1

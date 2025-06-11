@@ -1,333 +1,488 @@
 name: my-k8s-app
 runtime: yaml
 resources:
-  image-type-7dbb1716-5fb8-41c7-8a91-ce863539c6d4:
-    name: image-type-7dbb1716-5fb8-41c7-8a91-ce863539c6d4
+  message-analyzer-type-69894e1e-f088-43d4-bd96-3003f30ff44b:
+    name: message-analyzer-type-69894e1e-f088-43d4-bd96-3003f30ff44b
     type: kubernetes:core/v1:Pod
     properties:
       apiVersion: v1
       kind: Pod
       metadata:
-        name: image-type
+        name: message-analyzer-type
         labels:
-          type: image-type
+          type: message-analyzer-type
       spec:
         nodeName: k3d-k3s-default-agent-0
         containers:
-        - name: image
-          image: giovaz94/tea-store-general
-          imagePullPolicy: Always
+        - name: message-analyzer
+          image: giovaz94/mail-pipeline-general
+          imagePullPolicy: IfNotPresent
           ports:
-          - containerPort: 8002
+          - containerPort: 80
           resources:
             requests:
               cpu: 10m
               memory: 10M
           env:
           - name: MCL
-            value: '190'
+            value: '300'
+          - name: REDIS_HOST
+            value: redis-service
           - name: SERVICE_NAME
-            value: image
+            value: message-analyzer
           - name: PORT
-            value: '8002'
-          - name: OUTPUT_SERVICES
-            value: '{"http://persistence-service:8003/request":"1"}'
+            value: '80'
+          - name: MAX_SIZE
+            value: '800'
+          - name: MAX_CONNECTIONS
+            value: '70'
+          - name: PIPELINE_COUNT
+            value: '1'
     options: {}
-  persistence-type-d76c5cdf-bcd9-496e-a36e-d94de8423711:
-    name: persistence-type-d76c5cdf-bcd9-496e-a36e-d94de8423711
-    type: kubernetes:core/v1:Pod
+  message-analyzer-service-type-b8a74944-f342-4aa6-8323-62dd73b4acdb:
+    name: message-analyzer-service-type-b8a74944-f342-4aa6-8323-62dd73b4acdb
+    type: kubernetes:core/v1:Service
     properties:
       apiVersion: v1
-      kind: Pod
+      kind: Service
       metadata:
-        name: persistence-type
+        name: message-analyzer-service-type
         labels:
-          type: persistence-type
+          type: message-analyzer-service-type
       spec:
-        nodeName: k3d-k3s-default-agent-0
-        containers:
-        - name: persistence
-          image: giovaz94/tea-store-general
-          imagePullPolicy: Always
-          ports:
-          - containerPort: 8003
-          resources:
-            requests:
-              cpu: 10m
-              memory: 10M
-          env:
-          - name: MCL
-            value: '190'
-          - name: SERVICE_NAME
-            value: persistence
-          - name: PORT
-            value: '8003'
+        selector:
+          type: message-analyzer-type
+        ports:
+        - protocol: TCP
+          port: 80
+          targetPort: 80
     options: {}
-  recommender-type-8d8a04fd-4dba-4c57-81dd-e17966a98e28:
-    name: recommender-type-8d8a04fd-4dba-4c57-81dd-e17966a98e28
+  link-analyzer-type-e1d2168c-2bee-4996-8ac2-7bd50cf28127:
+    name: link-analyzer-type-e1d2168c-2bee-4996-8ac2-7bd50cf28127
     type: kubernetes:core/v1:Pod
     properties:
       apiVersion: v1
       kind: Pod
       metadata:
-        name: recommender-type
+        name: link-analyzer-type
         labels:
-          type: recommender-type
+          type: link-analyzer-type
       spec:
         nodeName: k3d-k3s-default-agent-0
         containers:
-        - name: recommender
-          image: giovaz94/tea-store-general
-          imagePullPolicy: Always
+        - name: link-analyzer
+          image: giovaz94/mail-pipeline-general
+          imagePullPolicy: IfNotPresent
           ports:
-          - containerPort: 8005
+          - containerPort: 80
           resources:
             requests:
               cpu: 10m
               memory: 10M
           env:
           - name: MCL
-            value: '190'
+            value: '0'
+          - name: REDIS_HOST
+            value: redis-service
           - name: SERVICE_NAME
-            value: recommender
+            value: link-analyzer
           - name: PORT
-            value: '8005'
+            value: '80'
+          - name: MAX_SIZE
+            value: '800'
+          - name: MAX_CONNECTIONS
+            value: '70'
+          - name: PIPELINE_COUNT
+            value: '1'
+          - name: PORT_MESSAGE_ANALYZER_SERVICE
+            value: message-analyzer-service-type-b8a74944-f342-4aa6-8323-62dd73b4acdb
+    options:
+      dependsOn:
+      - ${message-analyzer-service-type-b8a74944-f342-4aa6-8323-62dd73b4acdb}
+  header-analyzer-type-3e62c5aa-e38a-4045-9b09-b90853874666:
+    name: header-analyzer-type-3e62c5aa-e38a-4045-9b09-b90853874666
+    type: kubernetes:core/v1:Pod
+    properties:
+      apiVersion: v1
+      kind: Pod
+      metadata:
+        name: header-analyzer-type
+        labels:
+          type: header-analyzer-type
+      spec:
+        nodeName: k3d-k3s-default-agent-0
+        containers:
+        - name: header-analyzer
+          image: giovaz94/mail-pipeline-general
+          imagePullPolicy: IfNotPresent
+          ports:
+          - containerPort: 80
+          resources:
+            requests:
+              cpu: 10m
+              memory: 10M
+          env:
+          - name: MCL
+            value: '0'
+          - name: REDIS_HOST
+            value: redis-service
+          - name: SERVICE_NAME
+            value: header-analyzer
+          - name: PORT
+            value: '80'
+          - name: MAX_SIZE
+            value: '800'
+          - name: MAX_CONNECTIONS
+            value: '70'
+          - name: PIPELINE_COUNT
+            value: '1'
+          - name: PORT_MESSAGE_ANALYZER_SERVICE
+            value: message-analyzer-service-type-b8a74944-f342-4aa6-8323-62dd73b4acdb
+    options:
+      dependsOn:
+      - ${message-analyzer-service-type-b8a74944-f342-4aa6-8323-62dd73b4acdb}
+  text-analyzer-type-2eafda81-9fda-4c7e-b256-b20ab597bb58:
+    name: text-analyzer-type-2eafda81-9fda-4c7e-b256-b20ab597bb58
+    type: kubernetes:core/v1:Pod
+    properties:
+      apiVersion: v1
+      kind: Pod
+      metadata:
+        name: text-analyzer-type
+        labels:
+          type: text-analyzer-type
+      spec:
+        nodeName: k3d-k3s-default-agent-0
+        containers:
+        - name: text-analyzer
+          image: giovaz94/mail-pipeline-general
+          imagePullPolicy: IfNotPresent
+          ports:
+          - containerPort: 80
+          resources:
+            requests:
+              cpu: 10m
+              memory: 10M
+          env:
+          - name: MCL
+            value: '0'
+          - name: REDIS_HOST
+            value: redis-service
+          - name: SERVICE_NAME
+            value: text-analyzer
+          - name: PORT
+            value: '80'
+          - name: MAX_SIZE
+            value: '800'
+          - name: MAX_CONNECTIONS
+            value: '70'
+          - name: PIPELINE_COUNT
+            value: '1'
+          - name: PORT_MESSAGE_ANALYZER_SERVICE
+            value: message-analyzer-service-type-b8a74944-f342-4aa6-8323-62dd73b4acdb
+    options:
+      dependsOn:
+      - ${message-analyzer-service-type-b8a74944-f342-4aa6-8323-62dd73b4acdb}
+  image-analyzer-type-2d753607-4ef8-4361-9405-bc5d6ccc41ca:
+    name: image-analyzer-type-2d753607-4ef8-4361-9405-bc5d6ccc41ca
+    type: kubernetes:core/v1:Pod
+    properties:
+      apiVersion: v1
+      kind: Pod
+      metadata:
+        name: image-analyzer-type
+        labels:
+          type: image-analyzer-type
+      spec:
+        nodeName: k3d-k3s-default-agent-0
+        containers:
+        - name: image-analyzer
+          image: giovaz94/mail-pipeline-general
+          imagePullPolicy: IfNotPresent
+          ports:
+          - containerPort: 80
+          resources:
+            requests:
+              cpu: 10m
+              memory: 10M
+          env:
+          - name: MCL
+            value: '231'
+          - name: REDIS_HOST
+            value: redis-service
+          - name: SERVICE_NAME
+            value: image-analyzer
+          - name: PORT
+            value: '80'
+          - name: MAX_SIZE
+            value: '800'
+          - name: MAX_CONNECTIONS
+            value: '70'
+          - name: PIPELINE_COUNT
+            value: '1'
+          - name: PORT_MESSAGE_ANALYZER_SERVICE
+            value: message-analyzer-service-type-b8a74944-f342-4aa6-8323-62dd73b4acdb
+    options:
+      dependsOn:
+      - ${message-analyzer-service-type-b8a74944-f342-4aa6-8323-62dd73b4acdb}
+  image-analyzer-service-type-4f5dc8e1-7684-41b2-8841-95e2986e4e7c:
+    name: image-analyzer-service-type-4f5dc8e1-7684-41b2-8841-95e2986e4e7c
+    type: kubernetes:core/v1:Service
+    properties:
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: image-analyzer-service-type
+        labels:
+          type: image-analyzer-service-type
+      spec:
+        selector:
+          type: image-analyzer-type
+        ports:
+        - protocol: TCP
+          port: 80
+          targetPort: 80
     options: {}
-  image-type-76cb45a1-2813-43b3-8183-a9e72eae6125:
-    name: image-type-76cb45a1-2813-43b3-8183-a9e72eae6125
-    type: kubernetes:core/v1:Pod
+  link-analyzer-service-type-29025d8b-3137-4927-a042-4b2a5cd391e5:
+    name: link-analyzer-service-type-29025d8b-3137-4927-a042-4b2a5cd391e5
+    type: kubernetes:core/v1:Service
     properties:
       apiVersion: v1
-      kind: Pod
+      kind: Service
       metadata:
-        name: image-type
+        name: link-analyzer-service-type
         labels:
-          type: image-type
+          type: link-analyzer-service-type
       spec:
-        nodeName: k3d-k3s-default-agent-0
-        containers:
-        - name: image
-          image: giovaz94/tea-store-general
-          imagePullPolicy: Always
-          ports:
-          - containerPort: 8002
-          resources:
-            requests:
-              cpu: 10m
-              memory: 10M
-          env:
-          - name: MCL
-            value: '190'
-          - name: SERVICE_NAME
-            value: image
-          - name: PORT
-            value: '8002'
-          - name: OUTPUT_SERVICES
-            value: '{"http://persistence-service:8003/request":"1"}'
+        selector:
+          type: link-analyzer-type
+        ports:
+        - protocol: TCP
+          port: 80
+          targetPort: 80
     options: {}
-  image-service-type-19bcc499-6584-4e64-a51b-aa1ae8f6bfff:
-    name: image-service-type-19bcc499-6584-4e64-a51b-aa1ae8f6bfff
+  text-analyzer-service-type-fd3ea4e4-c9b1-44e3-b0c5-ea142cfd248b:
+    name: text-analyzer-service-type-fd3ea4e4-c9b1-44e3-b0c5-ea142cfd248b
     type: kubernetes:core/v1:Service
     properties:
       apiVersion: v1
       kind: Service
       metadata:
-        name: image-service-type
+        name: text-analyzer-service-type
         labels:
-          type: image-service-type
+          type: text-analyzer-service-type
       spec:
         selector:
-          type: image-type
+          type: text-analyzer-type
         ports:
         - protocol: TCP
-          port: 8004
-          targetPort: 8004
-    options:
-      dependsOn:
-      - ${image-type-7dbb1716-5fb8-41c7-8a91-ce863539c6d4}
-      - ${image-type-76cb45a1-2813-43b3-8183-a9e72eae6125}
-  persistence-service-type-68d69103-76d1-4e0f-b665-59036947a5c8:
-    name: persistence-service-type-68d69103-76d1-4e0f-b665-59036947a5c8
+          port: 80
+          targetPort: 80
+    options: {}
+  header-analyzer-service-type-df2a44ff-eda1-4b9a-9c96-6b0db4c918a1:
+    name: header-analyzer-service-type-df2a44ff-eda1-4b9a-9c96-6b0db4c918a1
     type: kubernetes:core/v1:Service
     properties:
       apiVersion: v1
       kind: Service
       metadata:
-        name: persistence-service-type
+        name: header-analyzer-service-type
         labels:
-          type: persistence-service-type
+          type: header-analyzer-service-type
       spec:
         selector:
-          type: persistence-type
+          type: header-analyzer-type
         ports:
         - protocol: TCP
-          port: 8003
-          targetPort: 8003
-    options:
-      dependsOn:
-      - ${persistence-type-d76c5cdf-bcd9-496e-a36e-d94de8423711}
-  recommender-service-type-98d367e2-12db-4dab-8a26-10a75234cfe2:
-    name: recommender-service-type-98d367e2-12db-4dab-8a26-10a75234cfe2
-    type: kubernetes:core/v1:Service
-    properties:
-      apiVersion: v1
-      kind: Service
-      metadata:
-        name: recommender-service-type
-        labels:
-          type: recommender-service-type
-      spec:
-        selector:
-          type: recommender-type
-        ports:
-        - protocol: TCP
-          port: 8005
-          targetPort: 8005
-    options:
-      dependsOn:
-      - ${recommender-type-8d8a04fd-4dba-4c57-81dd-e17966a98e28}
-  image-service-type-01a93387-e88f-4d55-a9fa-6efa906ffb1e:
-    name: image-service-type-01a93387-e88f-4d55-a9fa-6efa906ffb1e
-    type: kubernetes:core/v1:Service
-    properties:
-      apiVersion: v1
-      kind: Service
-      metadata:
-        name: image-service-type
-        labels:
-          type: image-service-type
-      spec:
-        selector:
-          type: image-type
-        ports:
-        - protocol: TCP
-          port: 8004
-          targetPort: 8004
-    options:
-      dependsOn:
-      - ${image-type-7dbb1716-5fb8-41c7-8a91-ce863539c6d4}
-      - ${image-type-76cb45a1-2813-43b3-8183-a9e72eae6125}
-  auth-type-f7372e0e-21f3-4a10-85e2-84e5f4428565:
-    name: auth-type-f7372e0e-21f3-4a10-85e2-84e5f4428565
+          port: 80
+          targetPort: 80
+    options: {}
+  attachment-manager-type-0ee3f813-3693-40c9-a0df-4889417afb7a:
+    name: attachment-manager-type-0ee3f813-3693-40c9-a0df-4889417afb7a
     type: kubernetes:core/v1:Pod
     properties:
       apiVersion: v1
       kind: Pod
       metadata:
-        name: auth-type
+        name: attachment-manager-type
         labels:
-          type: auth-type
+          type: attachment-manager-type
       spec:
         nodeName: k3d-k3s-default-agent-0
         containers:
-        - name: auth
-          image: giovaz94/tea-store-general
-          imagePullPolicy: Always
+        - name: attachment-manager
+          image: giovaz94/mail-pipeline-general
+          imagePullPolicy: IfNotPresent
           ports:
-          - containerPort: 8002
+          - containerPort: 80
           resources:
             requests:
               cpu: 10m
               memory: 10M
           env:
           - name: MCL
-            value: '190'
+            value: '231'
+          - name: REDIS_HOST
+            value: redis-service
           - name: SERVICE_NAME
-            value: auth
+            value: attachment-manager
           - name: PORT
-            value: '8002'
-          - name: OUTPUT_SERVICES
-            value: '{"http://persistence-service:8003/request":"1"}'
-          - name: DEP1
-            value: persistence-service-type-68d69103-76d1-4e0f-b665-59036947a5c8
+            value: '80'
+          - name: MAX_SIZE
+            value: '800'
+          - name: MAX_CONNECTIONS
+            value: '70'
+          - name: PIPELINE_COUNT
+            value: '1'
+          - name: PORT_IMAGE_ANALYZER_SERVICE
+            value: image-analyzer-service-type-4f5dc8e1-7684-41b2-8841-95e2986e4e7c
     options:
       dependsOn:
-      - ${persistence-service-type-68d69103-76d1-4e0f-b665-59036947a5c8}
-  auth-service-type-17746685-1f8e-4b2e-9cb5-d851569e45b1:
-    name: auth-service-type-17746685-1f8e-4b2e-9cb5-d851569e45b1
+      - ${image-analyzer-service-type-4f5dc8e1-7684-41b2-8841-95e2986e4e7c}
+  attachment-manager-service-type-55cd64bb-15b9-4dd1-a99e-9b963388b9a5:
+    name: attachment-manager-service-type-55cd64bb-15b9-4dd1-a99e-9b963388b9a5
     type: kubernetes:core/v1:Service
     properties:
       apiVersion: v1
       kind: Service
       metadata:
-        name: auth-service-type
+        name: attachment-manager-service-type
         labels:
-          type: auth-service-type
+          type: attachment-manager-service-type
       spec:
         selector:
-          type: auth-type
+          type: attachment-manager-type
         ports:
         - protocol: TCP
-          port: 8002
-          targetPort: 8002
-    options:
-      dependsOn:
-      - ${auth-type-f7372e0e-21f3-4a10-85e2-84e5f4428565}
-  webui-type-293d68ec-1f84-4fc7-aacd-23c19c17204e:
-    name: webui-type-293d68ec-1f84-4fc7-aacd-23c19c17204e
+          port: 80
+          targetPort: 80
+    options: {}
+  virus-scanner-type-6d781e2b-5477-4594-bcf3-dffc7b88ed4c:
+    name: virus-scanner-type-6d781e2b-5477-4594-bcf3-dffc7b88ed4c
     type: kubernetes:core/v1:Pod
     properties:
       apiVersion: v1
       kind: Pod
       metadata:
-        name: webui-type
+        name: virus-scanner-type
         labels:
-          type: webui-type
+          type: virus-scanner-type
       spec:
         nodeName: k3d-k3s-default-agent-0
         containers:
-        - name: webui
-          image: giovaz94/tea-store-general
-          imagePullPolicy: Always
+        - name: virus-scanner
+          image: giovaz94/mail-pipeline-general
+          imagePullPolicy: IfNotPresent
           ports:
-          - containerPort: 8001
+          - containerPort: 80
           resources:
             requests:
               cpu: 10m
               memory: 10M
           env:
           - name: MCL
-            value: '150'
+            value: '120'
+          - name: REDIS_HOST
+            value: redis-service
           - name: SERVICE_NAME
-            value: webUI
+            value: virus-scanner
           - name: PORT
-            value: '8001'
-          - name: OUTPUT_SERVICES
-            value: '{"http://recommender-service:8005/request":"1","http://image-service:8004/request":"2","http://persistence-service:8003/request":"1","http://auth-service:8002/request":"1"}'
-          - name: DEP1
-            value: image-service-type-19bcc499-6584-4e64-a51b-aa1ae8f6bfff
-          - name: DEP2
-            value: persistence-service-type-68d69103-76d1-4e0f-b665-59036947a5c8
-          - name: DEP3
-            value: auth-service-type-17746685-1f8e-4b2e-9cb5-d851569e45b1
-          - name: DEP4
-            value: recommender-service-type-98d367e2-12db-4dab-8a26-10a75234cfe2
+            value: '80'
+          - name: MAX_SIZE
+            value: '800'
+          - name: MAX_CONNECTIONS
+            value: '70'
+          - name: PIPELINE_COUNT
+            value: '1'
+          - name: PORT_ATTACHMENT_MANAGER_SERVICE
+            value: attachment-manager-service-type-55cd64bb-15b9-4dd1-a99e-9b963388b9a5
     options:
       dependsOn:
-      - ${image-service-type-19bcc499-6584-4e64-a51b-aa1ae8f6bfff}
-      - ${image-service-type-01a93387-e88f-4d55-a9fa-6efa906ffb1e}
-      - ${persistence-service-type-68d69103-76d1-4e0f-b665-59036947a5c8}
-      - ${auth-service-type-17746685-1f8e-4b2e-9cb5-d851569e45b1}
-      - ${recommender-service-type-98d367e2-12db-4dab-8a26-10a75234cfe2}
-  webui-service-type-0653f8dc-505e-4d59-a918-a8574be09165:
-    name: webui-service-type-0653f8dc-505e-4d59-a918-a8574be09165
+      - ${attachment-manager-service-type-55cd64bb-15b9-4dd1-a99e-9b963388b9a5}
+  virus-scanner-service-type-fdb731fc-d461-48e0-8b3e-1da5fb461015:
+    name: virus-scanner-service-type-fdb731fc-d461-48e0-8b3e-1da5fb461015
     type: kubernetes:core/v1:Service
     properties:
       apiVersion: v1
       kind: Service
       metadata:
-        name: webui-service-type
+        name: virus-scanner-service-type
         labels:
-          type: webui-service-type
+          type: virus-scanner-service-type
       spec:
-        type: NodePort
         selector:
-          type: webui-type
+          type: virus-scanner-type
         ports:
         - protocol: TCP
-          port: 8001
-          targetPort: 8001
-          nodePort: 30001
+          port: 80
+          targetPort: 80
+    options: {}
+  parser-type-5d827cec-d58b-4aa7-8dbc-3f84f840dc5a:
+    name: parser-type-5d827cec-d58b-4aa7-8dbc-3f84f840dc5a
+    type: kubernetes:core/v1:Pod
+    properties:
+      apiVersion: v1
+      kind: Pod
+      metadata:
+        name: parser-type
+        labels:
+          type: parser-type
+      spec:
+        nodeName: k3d-k3s-default-agent-0
+        containers:
+        - name: parser
+          image: giovaz94/mail-pipeline-general
+          imagePullPolicy: IfNotPresent
+          ports:
+          - containerPort: 80
+          resources:
+            requests:
+              cpu: 10m
+              memory: 10M
+          env:
+          - name: MCL
+            value: '110'
+          - name: REDIS_HOST
+            value: redis-service
+          - name: SERVICE_NAME
+            value: parser
+          - name: PORT
+            value: '80'
+          - name: MAX_SIZE
+            value: '800'
+          - name: MAX_CONNECTIONS
+            value: '70'
+          - name: PIPELINE_COUNT
+            value: '1'
+          - name: PORT_VIRUS_SCANNER_SERVICE
+            value: virus-scanner-service-type-fdb731fc-d461-48e0-8b3e-1da5fb461015
+          - name: PORT_HEADER_ANALYZER_SERVICE
+            value: header-analyzer-service-type-df2a44ff-eda1-4b9a-9c96-6b0db4c918a1
+          - name: PORT_TEXT_ANALYZER_SERVICE
+            value: text-analyzer-service-type-fd3ea4e4-c9b1-44e3-b0c5-ea142cfd248b
+          - name: PORT_LINK_ANALYZER_SERVICE
+            value: link-analyzer-service-type-29025d8b-3137-4927-a042-4b2a5cd391e5
     options:
       dependsOn:
-      - ${webui-type-293d68ec-1f84-4fc7-aacd-23c19c17204e}
+      - ${virus-scanner-service-type-fdb731fc-d461-48e0-8b3e-1da5fb461015}
+      - ${header-analyzer-service-type-df2a44ff-eda1-4b9a-9c96-6b0db4c918a1}
+      - ${text-analyzer-service-type-fd3ea4e4-c9b1-44e3-b0c5-ea142cfd248b}
+      - ${link-analyzer-service-type-29025d8b-3137-4927-a042-4b2a5cd391e5}
+  parser-service-type-a51b8440-485f-484e-96fd-cb95dc67daa7:
+    name: parser-service-type-a51b8440-485f-484e-96fd-cb95dc67daa7
+    type: kubernetes:core/v1:Service
+    properties:
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: parser-service-type
+        labels:
+          type: parser-service-type
+      spec:
+        selector:
+          type: parser-type
+        ports:
+        - protocol: TCP
+          port: 80
+          targetPort: 80
+    options: {}
