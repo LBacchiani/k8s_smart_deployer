@@ -28,7 +28,7 @@ def prepare_deployment_data(order, components):
                 "image_name": to_dns_name(component['spec']['containers'][0]['image']),
                 "cpu": component['spec']['containers'][0]['resources']['requests']['cpu'],
                 "memory": component['spec']['containers'][0]['resources']['requests']['memory'],
-                "env": component['spec']['containers'][0]['env'],
+                "env": component['spec']['containers'][0].get('env', []),
                 "depends_on": [{"service_name": name_to_variable[k][:mapped[k][0]]} for k in mapped]
             }
             return output

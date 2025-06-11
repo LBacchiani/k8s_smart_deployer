@@ -1,8 +1,8 @@
 service_instances:
-  - type: "backend"
+  - type: "backend-type"
     replicas: 1
-# existingDependencies:
-#   - type: "proxy-type"
-#     value: 1
+existingDependencies:
+  - type: "proxy-type"
+    value: 1
       
 

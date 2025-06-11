@@ -30,16 +30,16 @@ class Optimizer:
         to_return['provides'] = [{'ports': [pod_type], 'num': -1}]
         return to_return
 
-    def match_by_app(self, components, values):
+    def match_by_type(self, components, values):
         match = []
         for component in components:
-            if component['kind'] == 'Pod' and component['metadata']['labels']['app'] in values:
-                match.append(refine_name(component['metadata']['name']))
+            if component['kind'] == 'Pod' and component['metadata']['labels']['type'] in values:
+                match.append(refine_name(component['metadata']['labels']['type']))
         return match
 
     def in_operator(self, component, matches, kind):
         affinities = []
-        pod_nickname = refine_name(component['metadata']['name'])
+        pod_nickname = refine_name(component['metadata']['labels']['type'])
         if kind == 'affinity':
             for match in matches:
                 if pod_nickname != match:
@@ -60,17 +60,17 @@ class Optimizer:
 
     def pod_affinity(self, component, components, preferences):
         affinities = []
-        for x in preferences:
-            for pref in x:
-                for expression in x[pref]:
-                    if expression['key'] == 'app':
-                        matches = self.match_by_app(components,  expression['values'])
-                    else:
-                        raise Exception('Key not supported')
-                    if expression['operator'] == 'In':
-                        affinities += self.in_operator(component, matches, pref)
-                    else:
-                        raise Exception('Operator not supported')
+        for pref, expressions in preferences.items():
+            if pref == "type":
+                continue
+            if isinstance(expressions, dict):
+                expressions = [expressions]
+            for expression in expressions:
+                matches = self.match_by_type(components, expression['values'])
+                if expression['operator'] == 'In':
+                    affinities += self.in_operator(component, matches, pref)
+                else:
+                    raise Exception('Operator not supported')
         return ' and '.join(affinities)
 
     def build_specification(self, vm_properties, components, target):
@@ -86,16 +86,20 @@ class Optimizer:
             spec['components'][pod_name] = self.requirements(component)
             if spec['specification']: spec['specification'] += ' and '
             value = 0
-            print(target['service_instances'])
             for instance in target['service_instances']:
                 if pod_type == instance['type']:
                     value = instance['replicas']
             if pod_type in target['service_instances']: 
                 value = target['service_instances'][pod_type]['replicas']
             spec['specification'] += '{} >= {}'.format(pod_name, value)
-            if 'deployment_preferences' in target and pod_type in target['deployment_preferences']:
-                affinities = self.pod_affinity(component, components, target['deployment_preferences'][pod_type])
-                if affinities: spec['specification'] += ' and {}'.format(affinities)
+            if 'deployment_preferences' in target:
+                for resource in target['deployment_preferences']:
+                    for preferences in resource.values():
+                        resource_type = preferences['type']
+                        if pod_type == resource_type:
+                            affinities = self.pod_affinity(component, components, preferences)
+                            if affinities: spec['specification'] += ' and {}'.format(affinities)
+                        
         spec['specification'] += '; cost; (sum ?y in components: ?y)'
         return spec
 

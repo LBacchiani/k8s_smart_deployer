@@ -8,15 +8,14 @@ existingDependencies:
 
 
 deployment_preferences:
-  backend:
-    - affinity:
-      - key: app
+  - backend:
+      type: backend-type 
+      affinity:
         operator: In
         values:
-        -  backend
-    - antiAffinity:
-      - key: app
-        operator: In
-        values:
-          -  proxy      
+          -  backend-type
+      antiAffinity:
+          operator: In
+          values:
+            -  proxy-type  
 
