@@ -1,0 +1,27 @@
+service_instances:
+  - type: "message-analyzer-type"
+    replicas: 2
+
+  - type: "attachment-manager-type"
+    replicas: 1
+  
+  - type: "image-analyzer-type"
+    replicas: 1
+  
+  - type: "virus-scanner-type"
+    replicas: 2
+    
+existingDependencies:
+  - type: "virus-scanner-service-type"
+    value: 1
+
+  - type: "message-analyzer-service-type"
+    value: 1
+  
+  - type: "attachment-manager-service-type"
+    value: 1
+
+  - type: "image-analyzer-service-type"
+    value: 1
+
+      
