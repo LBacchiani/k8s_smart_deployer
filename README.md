@@ -16,12 +16,11 @@ python main.py ARG1 ARG2 ARG3 ARG4 ARG5 ARG6
 where
 
 ```
-ARG1 is the path to the declarative specifications
-ARG2 is the folder where microservices spefications are
-ARG3 is the yaml file containing the target configuration requirements
-ARG4 is the yaml file containing virtual machines requirements
-ARG5 is the value of the <PORT> specified after launching the zephyrus2 container
-ARG6 is the orchestration language (currently, we only support ```YAML``` and ```Python``` as orchestration languages. To choose among them, 
+ARG1 is the folder where microservice specifications are
+ARG2 is the yaml file containing the target configuration requirements
+ARG3 is the yaml file containing virtual machines requirements
+ARG4 is the value of the <PORT> specified after launching the zephyrus2 container
+ARG5 is the orchestration language (currently, we only support ```YAML``` and ```Python``` as orchestration languages. To choose among them, 
 use ```yaml``` and ```python```)
 ```
 Notice that, all paths must be specified without the final "/"

@@ -1,5 +1,4 @@
 from re import match as re_match
-from re import sub
 import toposort
 
 def cpu_convertion(cpu):

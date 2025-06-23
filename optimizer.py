@@ -104,7 +104,6 @@ class Optimizer:
         query_url = 'http://localhost:{}/process'.format(self.port)
         spec = self.build_specification(resources, components, target)
         configuration = requests_post(query_url, data=json.dumps(spec)).json()
-        print(configuration)
         if 'error' in configuration: exit('Configuration not found')
         for node in configuration['configuration']['locations']:
             configuration['configuration']['locations'][node]["0"] = \

@@ -11,12 +11,11 @@ import os
 
 if __name__ == '__main__':
     args = sys.argv[1:]
-    resource_folder = args[0] + '/'
-    services = args[1] + '/'
-    target_decl = args[2]
-    vms_decl = args[3]
-    port = args[4]
-    language = args[5]
+    services = args[0] + '/'
+    target_decl = args[1]
+    vms_decl = args[2]
+    port = args[3]
+    language = args[4]
     target_folder = './deployment'
 
     components = []
@@ -25,17 +24,17 @@ if __name__ == '__main__':
 
 
     #load services declarative specifications
-    for filename in os.listdir(resource_folder + services):
-        with open(resource_folder + services + filename, 'r') as f:
+    for filename in os.listdir( services):
+        with open(services + filename, 'r') as f:
             configurations = list(yaml.safe_load_all(f))
             components.append(configurations[0])
     #load vms declarative specifications
-    with open(resource_folder + vms_decl, 'r') as f:
+    with open(vms_decl, 'r') as f:
         vms = list(yaml.safe_load_all(f))[0]
 
     #load target desiderata declarative specifications
     existing_dep = {}
-    with open(resource_folder + target_decl, 'r') as f:
+    with open(target_decl, 'r') as f:
         target_requirements = list(yaml.safe_load_all(f))[0]
         if 'existingDependencies' in target_requirements:
             for dep in target_requirements['existingDependencies']:

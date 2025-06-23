@@ -1,0 +1,4 @@
+pulumi
+pulumi_kubernetes
+jinja2
+toposort
