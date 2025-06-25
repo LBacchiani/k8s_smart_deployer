@@ -78,7 +78,7 @@ def prepare_deployment_data(order, components):
         
     service_group = []
     for node_name, service_type in order:
-        generated_name = f"{service_type}-{uuid.uuid4()}"
+        generated_name = f"{service_type}-{uuid.uuid4()}".replace("-type", "")
         if service_type not in name_to_variable:
             name_to_variable[service_type] = []
         service_props = component_mapping[refine_name(service_type)]

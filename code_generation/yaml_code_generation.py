@@ -29,7 +29,7 @@ def add_pod_definitions(order, components):
 
     service_variable_map = {}
     for node_name, service_idx, service_name in indexed_services:
-        variable_name = f"{service_name}-{to_dns_name(str(uuid.uuid4()))}"
+        variable_name = f"{service_name}-{to_dns_name(str(uuid.uuid4()))}".replace("-type", "")
         if service_name not in name_to_variable:
             name_to_variable[service_name] = []
         name_to_variable[service_name].append(variable_name)
