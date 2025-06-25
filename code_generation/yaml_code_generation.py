@@ -66,7 +66,7 @@ def add_pod_definitions(order, components):
                         env_list.append({"name": dep_name, "value": value})
                         depends_on.extend(f"${{{name_to_variable[dep_type][i]}}}" for i in range(dep_count))
 
-            props = create_pod_definition(service_name, component, node_name)
+            props = create_pod_definition(variable_name, component, node_name)
 
         elif kind == 'Service':
             props = create_service_definition(service_name, component)
