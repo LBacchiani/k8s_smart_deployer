@@ -37,6 +37,7 @@ def prepare_deployment_data(order, components):
                 "node_name": node_name,
                 "kind": "Service",
                 "service_name": service_name,
+                "service_label": component['metadata']['labels'],
                 "metadata": component['metadata'],
                 "variable_name": to_valid_variable_name(service_name),
                 "selector": component['spec']['selector'],
@@ -66,16 +67,17 @@ def prepare_deployment_data(order, components):
                 for port_name in ports_value:
                     if name == port_name and name not in ports_to_gen_names:
                         ports_to_gen_names[name] = deployment['service_name']
-        
+       
         for data in deployment_data:
             for deployment in data:
                 kind = deployment["kind"]
                 if kind != "Pod": 
                     continue 
                 for id_val, type_val in id_type_map.items():
-                    value = ports_to_gen_names[type_val]
-                    deployment['env'].append({"name": id_val, "value": value})
-        
+                    if type_val in ports_to_gen_names:
+                        value = ports_to_gen_names[type_val]
+                        deployment['env'].append({"name": id_val, "value": value})
+
     service_group = []
     for node_name, service_type in order:
         generated_name = f"{service_type}-{uuid.uuid4()}".replace("-type", "")

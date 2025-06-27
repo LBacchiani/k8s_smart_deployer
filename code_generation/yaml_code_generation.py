@@ -69,7 +69,7 @@ def add_pod_definitions(order, components):
             props = create_pod_definition(variable_name, component, node_name)
 
         elif kind == 'Service':
-            props = create_service_definition(service_name, component)
+            props = create_service_definition(variable_name, component)
             for dep_name, dep_info in mapped_dependencies.items():
                 count = dep_info[0]
                 if dep_name in name_to_variable:

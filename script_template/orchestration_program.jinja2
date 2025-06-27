@@ -43,7 +43,11 @@ def pulumi_program():
                         {% for env_var in service['env'] %}
                         k8s.core.v1.EnvVarArgs(
                             name='{{ env_var["name"] }}',
+                            {% if 'type' in env_var %}
+                            type='{{ env_var["type"] }}'
+                            {% else %}
                             value='{{ env_var["value"] }}'
+                            {% endif %}
                         ),
                         {% endfor %}
                     ],
@@ -67,7 +71,11 @@ def pulumi_program():
         metadata=k8s.meta.v1.ObjectMetaArgs(
             name='{{ service["service_name"] }}',
             labels={
-                'stack': stack
+                {% if service.get('service_label') %}
+                **{{ service['service_label'] }},
+                {% endif %}
+                'stack': stack,
+                'original_service': '{{ service["service_name"] }}'
             }
         ),
         spec=k8s.core.v1.ServiceSpecArgs(

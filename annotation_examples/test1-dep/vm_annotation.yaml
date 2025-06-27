@@ -1,0 +1,13 @@
+nodes:
+  k3d-k3s-default-agent-0:
+    resources:
+      cpu: 500m
+      memory: 3500M
+  k3d-k3s-default-agent-1:
+    resources:
+      cpu: 900m
+      memory: 4000M
+  k3d-k3s-default-agent-2:
+    resources:
+      cpu: 800m
+      memory: 4000M
