@@ -1,0 +1,28 @@
+service_instances:
+  - type: "webui-type"
+    replicas: 1
+
+  - type: "persistence-type"
+    replicas: 1
+  
+  - type: "auth-type"
+    replicas: 1
+  
+  - type: "image-type"
+    replicas: 2
+
+existingDependencies:
+  - type: "auth-service-type"
+    value: 1
+  
+  - type: "image-service-type"
+    value: 1
+  
+  - type: "persistence-service-type"
+    value: 1
+
+  - type: "recommender-service-type"
+    value: 1
+  
+  - type: "webui-service-type"
+    value: 1

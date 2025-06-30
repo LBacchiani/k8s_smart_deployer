@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    type: image-type
+spec:
+  containers:
+    - name: image
+      image: giovaz94/tea-store-general
+      imagePullPolicy: Always
+      ports:
+        - containerPort: 8002
+      resources:
+        requests:
+          cpu: "10m"
+          memory: "10M"
+      env:
+        - name: MCL
+          value: "190"
+        - name: SERVICE_NAME
+          value: "image"
+        - name: PORT
+          value: "8002"
+        - name: OUTPUT_SERVICES
+          value: '{"http://persistence-service:8003/request":"1"}'
+  restartPolicy: Always

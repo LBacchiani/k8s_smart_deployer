@@ -29,6 +29,15 @@ spec:
           value: "70"
         - name: PIPELINE_COUNT
           value: "1"
+        - name: PORT_VIRUS_SCANNER_SERVICE
+          type: "virus-scanner-service-type"
+        - name: PORT_HEADER_ANALYZER_SERVICE
+          type: "header-analyzer-service-type"
+        - name: PORT_TEXT_ANALYZER_SERVICE
+          type: "text-analyzer-service-type"
+        - name: PORT_LINK_ANALYZER_SERVICE
+          type: "link-analyzer-service-type"
+          
   restartPolicy: Always
 
 ports:

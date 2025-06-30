@@ -29,12 +29,6 @@ spec:
           value: "70"
         - name: PIPELINE_COUNT
           value: "1"
-  
+        - name: PORT_IMAGE_ANALYZER_SERVICE
+          type: "image-analyzer-service-type"  
   restartPolicy: Always
-
-ports:
-  required:
-    strong:
-      - type: "image-analyzer-service-type"
-        id: PORT_IMAGE_ANALYZER_SERVICE
-        value: 1
