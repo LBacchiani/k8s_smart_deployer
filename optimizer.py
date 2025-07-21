@@ -33,7 +33,7 @@ class Optimizer:
     def match_by_type(self, components, values):
         match = []
         for component in components:
-            if component['kind'] == 'Pod' and component['metadata']['labels']['type'] in values:
+            if component['kind'] == 'Pod' and component['metadata']['labels'] in values:
                 match.append(refine_name(component['metadata']['labels']['type']))
         return match
 
@@ -44,16 +44,14 @@ class Optimizer:
             for match in matches:
                 if pod_nickname != match:
                     affinities.append('(forall ?x in locations: (?x.{} > 0 impl ?x.{} > 0))'.format(pod_nickname, match))
-                else:
-                    affinities.append('(forall ?x in locations: (?x.{} > 0 impl ?x.{} > 1))'.format(pod_nickname, match))
+                #else:
+                    #affinities.append('(forall ?x in locations: (?x.{} > 0 impl ?x.{} > 1))'.format(pod_nickname, match))
         elif kind == 'antiAffinity':
             if pod_nickname in matches:
-                affinities.append('(forall ?x in locations: (?x.{} <= 1))'
-                                  .format(pod_nickname))
+                affinities.append('(forall ?x in locations: (?x.{} <= 1))'.format(pod_nickname))
             else:
                 for match in matches:
-                    affinities.append('(forall ?x in locations: (?x.{} > 0 impl ?x.{} = 0))'
-                                      .format(pod_nickname, match))
+                    affinities.append('(forall ?x in locations: (?x.{} > 0 impl ?x.{} = 0))'.format(pod_nickname, match))
         else:
             raise Exception('Affinity not supported')
         return affinities
@@ -92,10 +90,11 @@ class Optimizer:
             spec['specification'] += '{} >= {}'.format(pod_name, value)
             if 'deployment_preferences' in target:
                 for resource in target['deployment_preferences']:
-                    for resource_type, preferences in resource.items():
-                        if pod_type == resource_type:
-                            affinities = self.pod_affinity(component, components, preferences)
-                            if affinities: spec['specification'] += ' and {}'.format(affinities)
+                    resource_type = resource['type']
+                    preferences = {k: v for k,v in resource.items() if k != 'type'}
+                    if pod_type == resource_type:
+                        affinities = self.pod_affinity(component, components, preferences)
+                        if affinities: spec['specification'] += ' and {}'.format(affinities)
                         
         spec['specification'] += '; cost; (sum ?y in components: ?y)'
         return spec

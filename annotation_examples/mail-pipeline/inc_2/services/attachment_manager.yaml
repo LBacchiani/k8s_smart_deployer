@@ -21,8 +21,6 @@ spec:
           value: "redis-service"
         - name: SERVICE_NAME
           value: "attachment-manager"
-        - name: PORT_IMAGE_ANALYZER_SERVICE
-          type: "image-analyzer-service-type"
         - name: PORT
           value: "80"
         - name: MAX_SIZE
@@ -33,3 +31,9 @@ spec:
           value: "1"
   
   restartPolicy: Always
+
+ports:
+  strong:
+    - type: "image-analyzer-service-type"
+      id: PORT_IMAGE_ANALYZER_SERVICE
+      value: 1

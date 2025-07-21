@@ -2,19 +2,11 @@ service_instances:
   - type: "backend-type"
     replicas: 1
 
-existingDependencies:
-  - type: "proxy-type"
-    value: 1
 
 
 deployment_preferences:
-  - backend-type:
-      affinity:
-        operator: In
-        values:
-          -  backend-type
-      antiAffinity:
-          operator: In
-          values:
-            -  proxy-type  
-
+  - type: backend-type
+    antiAffinity:
+      operator: In
+      values:
+        - type: proxy-type

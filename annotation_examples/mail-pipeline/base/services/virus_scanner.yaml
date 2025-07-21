@@ -32,13 +32,11 @@ spec:
   restartPolicy: Always
 
 ports:
-  required:
-    strong:
-      - type: "message-analyzer-service-type"
-        id: PORT_MESSAGE_ANALYZER_SERVICE
-        value: 1
-
-      - type: "attachment-manager-service-type"
-        id: PORT_ATTACHMENT_MANAGER_SERVICE
-        value: 1
+  strong:
+    - type: "message-analyzer-service-type"
+      id: PORT_MESSAGE_ANALYZER_SERVICE
+      value: 1
+    - type: "attachment-manager-service-type"
+      id: PORT_ATTACHMENT_MANAGER_SERVICE
+      value: 1
 

@@ -44,7 +44,7 @@ def add_pod_definitions(order, components):
         kind = component.get("kind")
         mapped_dependencies = {}
         
-        ports_required = component.get('ports', {}).get('required', {}).get('strong', [])
+        ports_required = component.get('ports', {}).get('strong', [])
         for entry in ports_required:
             dep_name = entry.get("id")
             dep_type = entry.get("type")

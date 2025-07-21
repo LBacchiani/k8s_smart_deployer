@@ -23,12 +23,9 @@ ARG4 is the value of the <PORT> specified after launching the zephyrus2 containe
 ARG5 is the orchestration language (currently, we only support ```YAML``` and ```Python``` as orchestration languages. To choose among them, 
 use ```yaml``` and ```python```)
 ```
-Notice that, all paths must be specified without the final "/"
-
-
 We currently support two kinds of deployment preferences (considered as "hard" constraints, i.e., they must be satisfied during service scheduling): affinity and antiAffinity. 
 The former ensures that the operators used within its context are satisfied, while the latter ensures that the negation of the operators used within its context are satisfied.
 Concerning operators, we currently support the In operator. When such operator is used in the context of an affinity preference, it ensures that the specified services are deployed within the same node. Conversely, when it is used in the context of an antiAffinity preference it ensures that the specified services are deployed different nodes.
-Notice that, this tool is a proof-of-concept, its stable version will comprise all Kuberentes operators.
+Notice that, this tool is a proof-of-concept, its stable version will comprise all Kubernetes operators.
 
 Examples are provided in annotation_examples

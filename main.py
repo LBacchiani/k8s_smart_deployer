@@ -45,7 +45,7 @@ if __name__ == '__main__':
     for c in components:
         if 'ports' in c:
             dependencies_left = []
-            for dep in c['ports']['required']['strong']:
+            for dep in c['ports']['strong']:
                 dep_type, val = dep['type'], dep['value']
                 env = ""
                 if 'id' in dep:
@@ -60,7 +60,7 @@ if __name__ == '__main__':
             if not dependencies_left:
                 del c['ports']
             else:
-                c['ports']['required']['strong'] = dependencies_left
+                c['ports']['strong'] = dependencies_left
     
     #compute configuration
     optimizer = Optimizer(port, '--solver, lex-or-tools')
