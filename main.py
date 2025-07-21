@@ -37,8 +37,8 @@ if __name__ == '__main__':
     existing_dep = {}
     with open(target_decl, 'r') as f:
         target_requirements = list(yaml.safe_load_all(f))[0]
-        if 'existingDependencies' in target_requirements:
-            for dep in target_requirements['existingDependencies']:
+        if 'existingResources' in target_requirements:
+            for dep in target_requirements['existingResources']:
                 existing_dep[dep['type']] = dep['value']
 
     #remove strong dep already satisfied
