@@ -24,7 +24,7 @@ class Optimizer:
         to_return['resources'] = {'memory': total_ram, 'cpu': total_cpu}
         if 'ports' in component:
             required = {}
-            for port in component['ports']['required']['strong']:
+            for port in component['ports']['strong']:
                 required[port['type']] = port['value']
             to_return['requires'] = required
         to_return['provides'] = [{'ports': [pod_type], 'num': -1}]
