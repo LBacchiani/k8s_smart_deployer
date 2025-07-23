@@ -46,7 +46,8 @@ if __name__ == '__main__':
         if 'ports' in c:
             dependencies_left = []
             for dep in c['ports']['strong']:
-                dep_type, val = dep['type'], dep['value']
+                dep_type = dep['type']
+                val = 1 if 'value' not in dep else dep['value']
                 env = ""
                 if 'id' in dep:
                     env = dep['id']

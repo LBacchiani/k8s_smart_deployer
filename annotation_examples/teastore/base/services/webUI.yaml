@@ -23,20 +23,16 @@ spec:
           value: "8001"
         - name: OUTPUT_SERVICES
           value: '{"http://recommender-service:8005/request":"1","http://image-service:8004/request":"2","http://persistence-service:8003/request":"1","http://auth-service:8002/request":"1"}'
-
   restartPolicy: Always
 ports:
-  required:
-    strong:
-      - type: "image-service-type"
-        id: PORT_IMAGE_SERVICE
-        value: 2
-      - type: "persistence-service-type"
-        id: PORT_PERSISTENCE_SERVICE
-        value: 1
-      - type: "auth-service-type"
-        id: PORT_AUTH_SERVICE
-        value: 1
-      - type: "recommender-service-type"
-        id: PORT_RECOMMENDER_SERVICE
-        value: 1
+  strong:
+    - type: "image-service-type"
+      id: PORT_IMAGE_SERVICE
+    - type: "persistence-service-type"
+      id: PORT_PERSISTENCE_SERVICE
+    - type: "auth-service-type"
+      id: PORT_AUTH_SERVICE
+    - type: "recommender-service-type"
+      id: PORT_RECOMMENDER_SERVICE
+    - type: "prometheus-service-type"
+      id: PORT_PROMETHEUS_SERVICE

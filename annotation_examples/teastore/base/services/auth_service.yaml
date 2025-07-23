@@ -12,7 +12,6 @@ spec:
       targetPort: 8002
 
 ports:
-  required:
-    strong:
-      - type: "auth-type"
-        value: 1
+  strong:
+    - type: "auth-type"
+      value: 1

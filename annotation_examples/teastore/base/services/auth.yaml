@@ -27,8 +27,6 @@ spec:
   restartPolicy: Always
 
 ports:
-  required:
-    strong:
-      - type: "persistence-service-type"
-        id: PORT_PERSISTENCE_SERVICE
-        value: 1
+  strong:
+    - type: "persistence-service-type"
+      id: PORT_PERSISTENCE_SERVICE

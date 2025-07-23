@@ -13,8 +13,7 @@ spec:
       targetPort: 8001
       nodePort: 30001
 ports:
-  required:
-    strong:
-      - type: "webui-type"
-        value: 1
+  strong:
+    - type: "webui-type"
+      value: 1
 

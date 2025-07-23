@@ -11,7 +11,6 @@ spec:
       port: 8005
       targetPort: 8005
 ports:
-  required:
-    strong:
-      - type: "recommender-type"
-        value: 1
+  strong:
+    - type: "recommender-type"
+      value: 1

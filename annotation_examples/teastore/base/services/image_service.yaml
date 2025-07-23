@@ -12,7 +12,6 @@ spec:
       targetPort: 8004
 
 ports:
-  required:
-    strong:
-      - type: "image-type"
-        value: 2
+  strong:
+    - type: "image-type"
+      value: 2
