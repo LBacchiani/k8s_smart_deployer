@@ -15,7 +15,7 @@ def prepare_deployment_data(order, components):
         if 'ports' in component:
             mapped = {
                 item['type']: [item['value']]
-                for item in component['ports']['required']['strong']
+                for item in component['ports']['strong']
             }
         if component['kind'] == 'Pod':
             output = {
@@ -29,11 +29,11 @@ def prepare_deployment_data(order, components):
                 "cpu": component['spec']['containers'][0]['resources']['requests']['cpu'],
                 "memory": component['spec']['containers'][0]['resources']['requests']['memory'],
                 "env": component['spec']['containers'][0].get('env', []),
-                "depends_on": [{"service_name": name_to_variable[k][:mapped[k][0]]} for k in mapped]
+                "depends_on": [{"service_name": name_to_variable[k][:mapped[k][0]]} for k in mapped if k in name_to_variable],
             }
             return output
         elif component['kind'] == 'Service':
-            result = {
+            output = {
                 "node_name": node_name,
                 "kind": "Service",
                 "service_name": service_name,
@@ -42,17 +42,16 @@ def prepare_deployment_data(order, components):
                 "variable_name": to_valid_variable_name(service_name),
                 "selector": component['spec']['selector'],
                 "ports": component['spec']['ports'],
-                "depends_on": [{"service_name": name_to_variable[k][:mapped[k][0]]} for k in mapped]
+                "depends_on": [{"service_name": name_to_variable[k][:mapped[k][0]]} for k in mapped if k in name_to_variable],
             }
             if "type" in component['spec']:
-                result["type"] = component['spec']['type']
-            return result
+                output["type"] = component['spec']['type']
+            return output
     
     def bind_ports(component, deployment_data):
         if 'ports' not in component:
             return
-        
-        strong_port_data = component['ports']['required']['strong']
+        strong_port_data = component['ports']['strong']
         ports_value = [ item['type'] for item in strong_port_data]
         id_type_map = {item['id']: item['type'] for item in strong_port_data if 'id' in item}
 
@@ -77,6 +76,8 @@ def prepare_deployment_data(order, components):
                     if type_val in ports_to_gen_names:
                         value = ports_to_gen_names[type_val]
                         deployment['env'].append({"name": id_val, "value": value})
+                    else :
+                        deployment['env'].append({"name": id_val, "type": type_val})
 
     service_group = []
     for node_name, service_type in order:

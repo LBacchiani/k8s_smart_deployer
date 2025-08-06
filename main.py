@@ -42,7 +42,9 @@ if __name__ == '__main__':
                 existing_dep[dep['type']] = dep['value']
 
     #remove strong dep already satisfied
+    deleted_deps = {}
     for c in components:
+        comp_type = c['metadata']['labels']['type']
         if 'ports' in c:
             dependencies_left = []
             for dep in c['ports']['strong']:
@@ -53,6 +55,11 @@ if __name__ == '__main__':
                     env = dep['id']
                 if dep_type in existing_dep:
                     val -= existing_dep[dep_type]
+                if val <= 0:
+                    out = {'type': dep_type, 'value': dep['value'] if 'value' in dep else 1}
+                    if env != "":
+                        out['id'] = env
+                    deleted_deps.setdefault(comp_type, []).append(out)
                 if val > 0:
                     out = {'type': dep_type, 'value': val}
                     if env != "":
@@ -62,7 +69,7 @@ if __name__ == '__main__':
                 del c['ports']
             else:
                 c['ports']['strong'] = dependencies_left
-    
+
     #compute configuration
     optimizer = Optimizer(port, '--solver, lex-or-tools')
     configuration = replace_underscores(optimizer.optimize(vms, components, target_requirements))
@@ -83,6 +90,16 @@ if __name__ == '__main__':
                         for x in configuration['configuration']['locations'][k]['0']
                         for _ in range(configuration['configuration']['locations'][k]['0'][x])
                 ]
+
+    # put back existing dependencies in components ports
+    for c in components:
+        comp_type = c['metadata']['labels']['type']
+        if comp_type in deleted_deps:
+            if 'ports' in c:
+                c['ports']['strong'].extend(deleted_deps[comp_type])
+            else:
+                c['ports'] = {'strong': deleted_deps[comp_type]}
+                
     if language == 'python':
         generate_python_script(order, components, target_folder)
     elif language == 'yaml':

@@ -65,6 +65,8 @@ def add_pod_definitions(order, components):
                         value = name_to_variable[dep_type][0]
                         env_list.append({"name": dep_name, "value": value})
                         depends_on.extend(f"${{{name_to_variable[dep_type][i]}}}" for i in range(dep_count))
+                    else:
+                        env_list.append({"name": dep_name, "type": dep_type})
 
             props = create_pod_definition(variable_name, component, node_name)
 
