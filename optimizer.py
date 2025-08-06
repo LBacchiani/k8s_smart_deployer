@@ -11,7 +11,7 @@ class Optimizer:
         '''Sums up the resource requirements of containers in a pod.'''
         total_cpu = 0
         total_ram = 0
-        pod_type = component['metadata']['labels']['type']
+        pod_type = component['type']
         to_return = {'resources': {}, 'provides': [{}], 'requires': {}}
         if component['kind'] == 'Pod':
             for container in component['spec']['containers']:
@@ -33,13 +33,14 @@ class Optimizer:
     def match_by_type(self, components, values):
         match = []
         for component in components:
-            if component['kind'] == 'Pod' and component['metadata']['labels'] in values:
-                match.append(refine_name(component['metadata']['labels']['type']))
+            if component['kind'] == 'Pod' and component['type'] in values:
+                match.append(refine_name(component['type']))
+
         return match
 
     def in_operator(self, component, matches, kind):
         affinities = []
-        pod_nickname = refine_name(component['metadata']['labels']['type'])
+        pod_nickname = refine_name(component['type'])
         if kind == 'affinity':
             for match in matches:
                 if pod_nickname != match:
@@ -78,7 +79,7 @@ class Optimizer:
         spec['specification'] = ''
         type_2_comp = dict()
         for component in components:
-            pod_type = component['metadata']['labels']['type']
+            pod_type = component['type']
             type_2_comp[pod_type] = component
             pod_name = refine_name(pod_type)
             spec['components'][pod_name] = self.requirements(component)

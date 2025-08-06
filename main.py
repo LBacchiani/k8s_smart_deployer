@@ -44,7 +44,7 @@ if __name__ == '__main__':
     #remove strong dep already satisfied
     deleted_deps = {}
     for c in components:
-        comp_type = c['metadata']['labels']['type']
+        comp_type = c['type']
         if 'ports' in c:
             dependencies_left = []
             for dep in c['ports']['strong']:
@@ -75,7 +75,7 @@ if __name__ == '__main__':
     configuration = replace_underscores(optimizer.optimize(vms, components, target_requirements))
     ###compute resource left
     placement = {x: [(y, configuration['configuration']['locations'][x]['0'][y]) for y in configuration['configuration']['locations'][x]['0']] for x in configuration['configuration']['locations']}
-    requirements = {x['metadata']['labels']['type']: x['spec']['containers'][0]['resources']['requests'] if x['kind'] == 'Pod' else {'cpu': '0m', 'memory': '0M'} for x in components}
+    requirements = {x['type']: x['spec']['containers'][0]['resources']['requests'] if x['kind'] == 'Pod' else {'cpu': '0m', 'memory': '0M'} for x in components}
 
     resource_left = update_usage(placement, requirements, vms)
     os.makedirs(target_folder, exist_ok=True)
@@ -93,13 +93,13 @@ if __name__ == '__main__':
 
     # put back existing dependencies in components ports
     for c in components:
-        comp_type = c['metadata']['labels']['type']
+        comp_type = c['type']
         if comp_type in deleted_deps:
             if 'ports' in c:
                 c['ports']['strong'].extend(deleted_deps[comp_type])
             else:
                 c['ports'] = {'strong': deleted_deps[comp_type]}
-                
+
     if language == 'python':
         generate_python_script(order, components, target_folder)
     elif language == 'yaml':

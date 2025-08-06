@@ -6,7 +6,7 @@ from utilities import *
 
 
 def prepare_deployment_data(order, components): 
-    component_mapping = {refine_name(comp['metadata']['labels']['type']): comp for comp in components}
+    component_mapping = {refine_name(comp['type']): comp for comp in components}
     deployment_data = []
     name_to_variable = {}
 
@@ -17,6 +17,13 @@ def prepare_deployment_data(order, components):
                 item['type']: [item['value']]
                 for item in component['ports']['strong']
             }
+        
+        if 'metadata' in component:
+            component['metadata']['labels']['type'] = component['type']
+        else:
+            component['metadata'] = {'labels': {'type': component['type']}}
+
+       
         if component['kind'] == 'Pod':
             output = {
                 "node_name": node_name,

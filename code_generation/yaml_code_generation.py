@@ -22,7 +22,7 @@ def enumerate_service_groups(input_list):
 
 
 def add_pod_definitions(order, components):
-    component_mapping = {comp['metadata']['labels']['type']: comp for comp in components}
+    component_mapping = {comp['type']: comp for comp in components}
     pod_definitions = []
     name_to_variable = {}
     indexed_services = enumerate_service_groups(order)
@@ -52,7 +52,11 @@ def add_pod_definitions(order, components):
             if dep_name:
                 mapped_dependencies[dep_name] = [dep_type, dep_count]
         
-
+        if 'metadata' in component:
+            component['metadata']['labels']['type'] = component['type']
+        else:
+            component['metadata'] = {'labels': {'type': component['type']}}
+    
         depends_on = []
         if kind == 'Pod':
             containers = component['spec']['containers']
@@ -88,6 +92,8 @@ def add_pod_definitions(order, components):
 
 
 def create_pod_definition(name, component, node_name):
+    
+
     return {
         'apiVersion': 'v1',
         'kind': 'Pod',
@@ -103,6 +109,7 @@ def create_pod_definition(name, component, node_name):
 
 
 def create_service_definition(name, component):
+
     return {
         'apiVersion': 'v1',
         'kind': 'Service',
