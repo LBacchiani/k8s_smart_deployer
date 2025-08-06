@@ -94,8 +94,9 @@ class Optimizer:
                     preferences = {k: v for k,v in resource.items() if k != 'type'}
                     if pod_type == resource_type:
                         affinities = self.pod_affinity(component, components, preferences)
-                        if affinities: spec['specification'] += ' and {}'.format(affinities)
-                        
+                        if affinities:
+                            spec['specification'] += ' and {}'.format(affinities)
+        #spec['specification'] += ' and edge[0].persistence_type  = 1'
         spec['specification'] += '; cost; (sum ?y in components: ?y)'
         return spec
 
@@ -103,7 +104,8 @@ class Optimizer:
         query_url = 'http://localhost:{}/process'.format(self.port)
         spec = self.build_specification(resources, components, target)
         configuration = requests_post(query_url, data=json.dumps(spec)).json()
-        if 'error' in configuration: exit('Configuration not found')
+        if 'error' in configuration:
+            exit('Configuration not found')
         for node in configuration['configuration']['locations']:
             configuration['configuration']['locations'][node]["0"] = \
                 {refine_name(key): value
