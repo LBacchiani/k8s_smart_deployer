@@ -4,8 +4,6 @@ service_instances:
 existingResources:
   - type: "prometheus-service-type"
     value: 1
-
-
   
     
 

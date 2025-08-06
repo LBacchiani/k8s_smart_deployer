@@ -76,11 +76,14 @@ class Optimizer:
         if self.options: 
             spec['options'] = self.options
         spec['specification'] = ''
+        type_2_comp = dict()
         for component in components:
             pod_type = component['metadata']['labels']['type']
+            type_2_comp[pod_type] = component
             pod_name = refine_name(pod_type)
             spec['components'][pod_name] = self.requirements(component)
-            if spec['specification']: spec['specification'] += ' and '
+            if spec['specification']:
+                spec['specification'] += ' and '
             value = 0
             for instance in target['service_instances']:
                 if pod_type == instance['type']:
@@ -88,14 +91,16 @@ class Optimizer:
             if pod_type in target['service_instances']: 
                 value = target['service_instances'][pod_type]['replicas']
             spec['specification'] += '{} >= {}'.format(pod_name, value)
-            if 'deployment_preferences' in target:
-                for resource in target['deployment_preferences']:
-                    resource_type = resource['type']
-                    preferences = {k: v for k,v in resource.items() if k != 'type'}
-                    if pod_type == resource_type:
-                        affinities = self.pod_affinity(component, components, preferences)
-                        if affinities:
-                            spec['specification'] += ' and {}'.format(affinities)
+        if 'deployment_preferences' in target:
+            for resource in target['deployment_preferences']:
+                resource_type = resource['type']
+                preferences = {k: v for k,v in resource.items() if k != 'type'}
+                affinities = self.pod_affinity(type_2_comp[resource_type], components, preferences)
+                if affinities:
+                    spec['specification'] += ' and {}'.format(affinities)
+        if 'placement' in target:
+            for placement in target['placement']:
+                spec['specification'] += ' and ' + placement['node'] + "[0]." + refine_name(placement['type']) + "=" + str(placement['value'])
         #spec['specification'] += ' and edge[0].persistence_type  = 1'
         spec['specification'] += '; cost; (sum ?y in components: ?y)'
         return spec
