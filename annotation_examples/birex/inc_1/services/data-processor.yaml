@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: Pod
+type: birex-data-processor-type
+spec:
+  containers:
+    - image: lukesmolo/public:birex-process_0.0.3
+      name: birex-processor
+      resources:
+        requests:
+          cpu: "10m"
+          memory: "10M"
+      env:
+        - name: COLLECTOR_URL
+          value: "http://birex-collector-1:8080/birexcollector"
+      ports:
+        - containerPort: 3000
+      
+
+ports:
+  strong:
+    - type: "birex-collector-service-type"
+      id: PORT_BIREX_COLLECTOR_SERVICE
+      value: 1
+    - type: "prometheus-service-type"
+      id: PORT_PROMETHEUS_SERVICE
+      value: 1
+

@@ -28,7 +28,7 @@ if __name__ == '__main__':
         with open(services + filename, 'r') as f:
             configurations = list(yaml.safe_load_all(f))
             components.append(configurations[0])
-
+            
     #load vms declarative specifications
     with open(vms_decl, 'r') as f:
         vms = list(yaml.safe_load_all(f))[0]
