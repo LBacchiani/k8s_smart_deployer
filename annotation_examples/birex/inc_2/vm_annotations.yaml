@@ -1,8 +1,0 @@
-cloud:
-  resources:
-    cpu: 8990m
-    memory: 39990M
-edge:
-  resources:
-    cpu: 7980m
-    memory: 39980M

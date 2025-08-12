@@ -19,7 +19,10 @@ def prepare_deployment_data(order, components):
             }
         
         if 'metadata' in component:
-            component['metadata']['labels']['type'] = component['type']
+            if 'labels' in component['metadata']:
+                component['metadata']['labels']['type'] = component['type']
+            else:
+                component['metadata']['labels'] = {'type': component['type']}
         else:
             component['metadata'] = {'labels': {'type': component['type']}}
 

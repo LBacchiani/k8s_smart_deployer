@@ -1,8 +1,0 @@
-cloud:
-  resources:
-    memory: "40G"
-    cpu: "9000m"
-edge:
-  resources:
-    memory: "40G"
-    cpu: "8000m"
