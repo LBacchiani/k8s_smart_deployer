@@ -1,8 +1,7 @@
 apiVersion: v1
 kind: Pod
-metadata:
-  labels:
-    type: proxy-type
+type: proxy-type
+
 spec:
   containers:
     - name: proxy-container

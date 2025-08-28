@@ -104,6 +104,7 @@ class Optimizer:
                 spec['specification'] += ' and ' + placement['node'] + "[0]." + refine_name(placement['type']) + "=" + str(placement['value'])
         #spec['specification'] += ' and edge[0].persistence_type  = 1'
         spec['specification'] += '; cost; (sum ?y in components: ?y)'
+        print(spec)
         return spec
 
     def optimize(self, resources, components, target):

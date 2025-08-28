@@ -52,7 +52,7 @@ def add_pod_definitions(order, components):
             if dep_name:
                 mapped_dependencies[dep_name] = [dep_type, dep_count]
         
-        if 'metadata' in component:
+        if 'metadata' in component and 'labels' in component['metadata']:
             component['metadata']['labels']['type'] = component['type']
         else:
             component['metadata'] = {'labels': {'type': component['type']}}

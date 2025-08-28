@@ -1,12 +1,12 @@
 apiVersion: v1
 kind: Service
+type: support-service-type
 metadata:
   annotations:
       prometheus.io/scrape: "true"
       prometheus.io/port: "80"
       prometheus.io/path: "/metrics"
-  labels:
-    type: support-service-type
+
 spec:
   selector:
     type: support-type
@@ -16,7 +16,6 @@ spec:
       targetPort: 80
 
 ports:
-  required:
     strong:
       - type: "support-type"
         value: 1
