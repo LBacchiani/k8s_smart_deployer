@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Service
+type: message-analyzer-service-type
+metadata:
+  annotations:
+      prometheus.io/scrape: "true"
+      prometheus.io/port: "80"
+      prometheus.io/path: "/metrics"
+spec:
+  selector:
+    type: message-analyzer-type
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+
+ports:
+  strong:
+    - type: "message-analyzer-type"
+      value: 1

@@ -7,17 +7,14 @@ class NoAliasDumper(yaml.SafeDumper):
     def ignore_aliases(self, data):
         return True
 
-
 def enumerate_service_groups(input_list):
     service_groups = {}
     result = []
-
     for host, service in input_list:
         if service not in service_groups:
             service_groups[service] = 0
         result.append((host, service_groups[service], service))
         service_groups[service] += 1
-
     return result
 
 
@@ -49,9 +46,10 @@ def add_pod_definitions(order, components):
             dep_name = entry.get("id")
             dep_type = entry.get("type")
             dep_count = entry.get("value", 1)
+            dep_config = entry.get("config", {})
             if dep_name:
-                mapped_dependencies[dep_name] = [dep_type, dep_count]
-        
+                mapped_dependencies[dep_name] = [dep_type, dep_count, dep_config]
+
         if 'metadata' in component and 'labels' in component['metadata']:
             component['metadata']['labels']['type'] = component['type']
         else:
@@ -65,12 +63,16 @@ def add_pod_definitions(order, components):
                 for dep_name, dep_info in mapped_dependencies.items():
                     dep_type = dep_info[0]
                     dep_count =  dep_info[1]
-                    if dep_type in name_to_variable:
-                        value = name_to_variable[dep_type][0]
-                        env_list.append({"name": dep_name, "value": value})
-                        depends_on.extend(f"${{{name_to_variable[dep_type][i]}}}" for i in range(dep_count))
-                    else:
-                        env_list.append({"name": dep_name, "type": dep_type})
+                    dep_config = dep_info[2]
+
+                    container_names = [c['name'] for c in dep_config.get('containers', []) if 'name' in c]
+                    if container['name'] in container_names:
+                        if dep_type in name_to_variable:
+                            value = name_to_variable[dep_type][0]
+                            env_list.append({"name": dep_name, "value": value})
+                            depends_on.extend(f"${{{name_to_variable[dep_type][i]}}}" for i in range(dep_count))
+                        else:
+                            env_list.append({"name": dep_name, "type": dep_type})
 
             props = create_pod_definition(variable_name, component, node_name)
 

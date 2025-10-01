@@ -1,0 +1,13 @@
+instances:
+  - type: "birex-data-processor-type"
+    replicas: 1
+
+existingResources:
+  - type: "prometheus-service-type"
+  - type: "birex-collector-service-type"
+  
+placement:
+  - type: "birex-data-processor-type"
+    node: "edge"
+    value: 1
+

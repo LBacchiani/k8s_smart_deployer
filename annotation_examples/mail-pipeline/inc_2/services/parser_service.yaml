@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Service
+type: parser-service-type
+metadata:
+  annotations:
+      prometheus.io/scrape: "true"
+      prometheus.io/port: "80"
+      prometheus.io/path: "/metrics"
+spec:
+  selector:
+    type: parser-type
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+
+ports:
+  strong:
+    - type: "parser-type"
+      value: 1

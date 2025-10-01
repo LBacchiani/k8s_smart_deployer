@@ -39,7 +39,7 @@ if __name__ == '__main__':
         target_requirements = list(yaml.safe_load_all(f))[0]
         if 'existingResources' in target_requirements:
             for dep in target_requirements['existingResources']:
-                existing_dep[dep['type']] = dep['value']
+                existing_dep[dep['type']] = 1 if 'value' not in dep else dep['value']
 
     #remove strong dep already satisfied
     deleted_deps = {}
@@ -51,19 +51,22 @@ if __name__ == '__main__':
                 dep_type = dep['type']
                 val = 1 if 'value' not in dep else dep['value']
                 env = ""
-                if 'id' in dep:
-                    env = dep['id']
+                if 'config' in dep and 'envName' in dep['config']:
+                    env = dep['config']['envName']
+
                 if dep_type in existing_dep:
                     val -= existing_dep[dep_type]
                 if val <= 0:
                     out = {'type': dep_type, 'value': dep['value'] if 'value' in dep else 1}
-                    if env != "":
-                        out['id'] = env
+                    if 'config' in dep and 'envName' in dep['config']:
+                        out['id'] = dep['config']['envName']
+                        out['config'] = dep['config']
                     deleted_deps.setdefault(comp_type, []).append(out)
                 if val > 0:
                     out = {'type': dep_type, 'value': val}
-                    if env != "":
-                        out['id'] = env
+                    if 'config' in dep and 'envName' in dep['config']:
+                        out['id'] = dep['config']['envName']
+                        out['config'] = dep['config']
                     dependencies_left.append(out)
             if not dependencies_left:
                 del c['ports']

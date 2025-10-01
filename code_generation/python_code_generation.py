@@ -1,3 +1,5 @@
+from cgitb import strong
+from logging import config
 from jinja2 import Environment, FileSystemLoader
 import uuid
 import os
@@ -26,7 +28,6 @@ def prepare_deployment_data(order, components):
         else:
             component['metadata'] = {'labels': {'type': component['type']}}
 
-       
         if component['kind'] == 'Pod':
             output = {
                 "node_name": node_name,
@@ -34,6 +35,8 @@ def prepare_deployment_data(order, components):
                 "service_name": service_name,
                 "service_label": component['metadata']['labels'],
                 "variable_name": to_valid_variable_name(service_name),
+                "containers": component['spec']['containers'],
+                "dep_ports": component['ports']['strong'] if 'ports' in component else [],
                 "image": component['spec']['containers'][0]['image'],
                 "image_name": to_dns_name(component['spec']['containers'][0]['image']),
                 "cpu": component['spec']['containers'][0]['resources']['requests']['cpu'],
@@ -57,37 +60,50 @@ def prepare_deployment_data(order, components):
             if "type" in component['spec']:
                 output["type"] = component['spec']['type']
             return output
-    
+
     def bind_ports(component, deployment_data):
         if 'ports' not in component:
             return
         strong_port_data = component['ports']['strong']
         ports_value = [ item['type'] for item in strong_port_data]
-        id_type_map = {item['id']: item['type'] for item in strong_port_data if 'id' in item}
-
         ports_to_gen_names = {}
+        
         for data in deployment_data:
             for deployment in data:
                 kind = deployment["kind"]
-                if kind != "Service": 
+                if kind != "Service":
                     continue
                 name = deployment['metadata']['labels']['type']
-
                 for port_name in ports_value:
                     if name == port_name and name not in ports_to_gen_names:
                         ports_to_gen_names[name] = deployment['service_name']
-       
+
         for data in deployment_data:
             for deployment in data:
                 kind = deployment["kind"]
-                if kind != "Pod": 
-                    continue 
-                for id_val, type_val in id_type_map.items():
-                    if type_val in ports_to_gen_names:
-                        value = ports_to_gen_names[type_val]
-                        deployment['env'].append({"name": id_val, "value": value})
-                    else :
-                        deployment['env'].append({"name": id_val, "type": type_val})
+                if kind != "Pod":
+                    continue
+                component_containers = deployment['containers']
+                arr_names =  [d['name'] for d in component_containers if 'name' in d]
+                for spd in strong_port_data:
+                    if 'config' not in spd:
+                        continue
+                    port_config = spd['config']
+                    env_name = port_config['envName']
+                    containers = port_config.get('containers', [])
+                    for container in containers:
+                        if container['name'] in arr_names:
+                            for cont in component_containers:
+                                if cont['name'] == container['name']:
+                                    if 'env' not in cont:
+                                        cont['env'] = []
+                                    already_present_env = [e['name'] for e in cont['env'] if 'name' in e]
+                                    if spd['type'] in ports_to_gen_names and env_name not in already_present_env:
+                                        value = ports_to_gen_names[spd['type']]
+                                        cont['env'].append({"name": env_name, "value": value})
+                                    elif 'type' in spd and env_name not in already_present_env:
+                                        cont['env'].append({"name": env_name, "type": spd['type']})
+                                
 
     service_group = []
     for node_name, service_type in order:
@@ -103,10 +119,12 @@ def prepare_deployment_data(order, components):
 
         name_to_variable[service_type] += [to_valid_variable_name(generated_name)]
         service_group.append(service_data)
+
     deployment_data.append(service_group)
     for _, service_type in order:
         component = component_mapping[refine_name(service_type)]
         bind_ports(component, deployment_data)
+
 
     return deployment_data
 

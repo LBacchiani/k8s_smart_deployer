@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+type: image-analyzer-service-type    
+spec:
+  selector:
+    type: image-analyzer-type
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+
+ports:
+  strong:
+    - type: "image-analyzer-type"
+      value: 1

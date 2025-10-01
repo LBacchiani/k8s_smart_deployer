@@ -1,0 +1,8 @@
+giovserver:
+  resources:
+    memory: "20G"
+    cpu: "16"
+giovworker:
+  resources:
+    memory: "40G"
+    cpu: "16"

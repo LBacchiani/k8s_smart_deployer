@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: Service
+type: link-analyzer-service-type
+metadata:
+  annotations:
+      prometheus.io/scrape: "true"
+      prometheus.io/port: "80"
+      prometheus.io/path: "/metrics"
+  
+spec:
+  selector:
+    type: link-analyzer-type
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+
+ports:
+  strong:
+    - type: "link-analyzer-type"
+      value: 1

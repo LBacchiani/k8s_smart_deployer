@@ -1,0 +1,22 @@
+
+
+service_instances:
+  - type: "birex-alerting-type"
+    replicas: 1
+  
+  - type: "birex-alerting-service-type"
+    replicas: 1
+
+  - type: "birex-data-collector-type"
+    replicas: 1
+  
+
+placement:
+  - type: "birex-collector-type"
+    node: "edge"
+    value: 1
+
+  - type: "birex-alerting-type"
+    node: "cloud"
+    value: 1
+

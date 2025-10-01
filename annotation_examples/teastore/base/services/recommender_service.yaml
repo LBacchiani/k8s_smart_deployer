@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+type: recommender-service-type
+spec:
+  selector:
+    type: recommender-type
+  ports:
+    - protocol: TCP
+      port: 8005
+      targetPort: 8005
+ports:
+  strong:
+    - type: "recommender-type"
+      value: 1

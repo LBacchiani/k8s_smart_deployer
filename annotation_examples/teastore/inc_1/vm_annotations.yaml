@@ -1,0 +1,9 @@
+
+giovserver:
+  resources:
+    cpu: 15940m
+    memory: 19940M
+giovworker:
+  resources:
+    cpu: 16000m
+    memory: 40000M

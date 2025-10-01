@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Pod
+type: birex-collector-type
+spec:
+  containers:
+    - image: lukesmolo/public:birex-collector_0.0.5
+      name: birex-collector
+      resources:
+        requests:
+          cpu: "10m"
+          memory: "10M"
+
+ports:
+  strong:
+    - type: "birex-collector-service-type"
+      id: PORT_BIREX_COLLECTOR_SERVICE
+      value: 1

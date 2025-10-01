@@ -86,11 +86,11 @@ class Optimizer:
             if spec['specification']:
                 spec['specification'] += ' and '
             value = 0
-            for instance in target['service_instances']:
+            for instance in target['instances']:
                 if pod_type == instance['type']:
                     value = instance['replicas']
-            if pod_type in target['service_instances']: 
-                value = target['service_instances'][pod_type]['replicas']
+            if pod_type in target['instances']: 
+                value = target['instances'][pod_type]['replicas']
             spec['specification'] += '{} >= {}'.format(pod_name, value)
         if 'deployment_preferences' in target:
             for resource in target['deployment_preferences']:
@@ -104,7 +104,6 @@ class Optimizer:
                 spec['specification'] += ' and ' + placement['node'] + "[0]." + refine_name(placement['type']) + "=" + str(placement['value'])
         #spec['specification'] += ' and edge[0].persistence_type  = 1'
         spec['specification'] += '; cost; (sum ?y in components: ?y)'
-        print(spec)
         return spec
 
     def optimize(self, resources, components, target):

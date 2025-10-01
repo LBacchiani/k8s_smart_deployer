@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+type: auth-service-type    
+spec:
+  selector:
+    type: auth-type
+  ports:
+    - protocol: TCP
+      port: 8002
+      targetPort: 8002
+
+ports:
+  strong:
+    - type: "auth-type"
+      value: 1

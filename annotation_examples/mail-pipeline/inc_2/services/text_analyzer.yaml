@@ -1,0 +1,36 @@
+apiVersion: v1
+kind: Pod
+type: text-analyzer-type
+spec:
+  containers:
+    - name: text-analyzer
+      image: giovaz94/mail-pipeline-general
+      imagePullPolicy: IfNotPresent
+      ports:
+        - containerPort: 80
+      resources:
+        requests:
+          cpu: "10m"
+          memory: "10M"
+      env:
+        - name: MCL
+          value: "0"
+        - name: REDIS_HOST
+          value: "redis-service"
+        - name: SERVICE_NAME
+          value: "text-analyzer"
+        - name: PORT
+          value: "80"
+        - name: MAX_SIZE
+          value: "800"
+        - name: MAX_CONNECTIONS
+          value: "70"
+        - name: PIPELINE_COUNT
+          value: "1"
+  restartPolicy: Always
+
+ports:
+  strong:
+    - type: "message-analyzer-service-type"
+      id: PORT_MESSAGE_ANALYZER_SERVICE
+      value: 1

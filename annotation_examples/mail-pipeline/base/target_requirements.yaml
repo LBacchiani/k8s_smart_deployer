@@ -1,0 +1,5 @@
+instances:
+  - type: "parser-service-type"
+    replicas: 1
+    
+
